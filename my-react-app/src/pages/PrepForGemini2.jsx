@@ -10,6 +10,8 @@ function PrepForGemini2({ navigate }) {
   const [messageType, setMessageType] = useState('') // 'success' or 'error'
   const [searchTerm, setSearchTerm] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
+  const [meetingHighlights, setMeetingHighlights] = useState('')
+  const [loadingHighlights, setLoadingHighlights] = useState(false)
 
   // Fetch meetings on component mount
   useEffect(() => {
@@ -63,12 +65,145 @@ function PrepForGemini2({ navigate }) {
     return meeting.name || meeting.title || meeting.meetingName || meeting.subject || `Meeting ${index + 1}`
   }
 
+  // Format JSON into HTML - labels as h2, highlightText as p
+  const formatJsonToHtml = (data) => {
+    if (!data) return '<p>No highlights available</p>'
+    
+    // If it's already a string, try to parse it
+    let jsonData = data
+    if (typeof data === 'string') {
+      try {
+        jsonData = JSON.parse(data)
+      } catch (e) {
+        // If it's not JSON, return it as is
+        return `<p>${escapeHtml(data)}</p>`
+      }
+    }
+
+    let htmlParts = []
+
+    // Handle array of highlight objects
+    if (Array.isArray(jsonData)) {
+      jsonData.forEach((item) => {
+        if (item && typeof item === 'object') {
+          if (item.label) {
+            htmlParts.push(`<h2>${escapeHtml(item.label)}</h2>`)
+          }
+          if (item.highlightText) {
+            htmlParts.push(`<p>${escapeHtml(item.highlightText)}</p>`)
+          }
+        }
+      })
+    }
+    // Handle single object
+    else if (jsonData && typeof jsonData === 'object') {
+      // Check if it has label and highlightText at root level
+      if (jsonData.label) {
+        htmlParts.push(`<h2>${escapeHtml(jsonData.label)}</h2>`)
+      }
+      if (jsonData.highlightText) {
+        htmlParts.push(`<p>${escapeHtml(jsonData.highlightText)}</p>`)
+      }
+      // Check if it has an array of highlights
+      if (Array.isArray(jsonData.highlights)) {
+        jsonData.highlights.forEach((item) => {
+          if (item && typeof item === 'object') {
+            if (item.label) {
+              htmlParts.push(`<h2>${escapeHtml(item.label)}</h2>`)
+            }
+            if (item.highlightText) {
+              htmlParts.push(`<p>${escapeHtml(item.highlightText)}</p>`)
+            }
+          }
+        })
+      }
+      // Iterate through all properties to find label/highlightText pairs
+      Object.keys(jsonData).forEach((key) => {
+        const value = jsonData[key]
+        if (key === 'label' && typeof value === 'string') {
+          htmlParts.push(`<h2>${escapeHtml(value)}</h2>`)
+        } else if (key === 'highlightText' && typeof value === 'string') {
+          htmlParts.push(`<p>${escapeHtml(value)}</p>`)
+        } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+          // Recursively check nested objects
+          if (value.label) {
+            htmlParts.push(`<h2>${escapeHtml(value.label)}</h2>`)
+          }
+          if (value.highlightText) {
+            htmlParts.push(`<p>${escapeHtml(value.highlightText)}</p>`)
+          }
+        }
+      })
+    }
+
+    if (htmlParts.length === 0) {
+      return '<p>No highlights found in the response</p>'
+    }
+
+    return `<div class="highlights-formatted">${htmlParts.join('')}</div>`
+  }
+
+  // Escape HTML to prevent XSS
+  const escapeHtml = (text) => {
+    const div = document.createElement('div')
+    div.textContent = text
+    return div.innerHTML
+  }
+
+  // Fetch meeting highlights
+  const fetchMeetingHighlights = async (meetingId) => {
+    try {
+      setLoadingHighlights(true)
+      const response = await fetch(
+        `https://tammer.app.n8n.cloud/webhook/meeting-highlights?id=${encodeURIComponent(meetingId)}`
+      )
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const text = await response.text()
+      let jsonData
+      
+      // Try to parse as JSON
+      try {
+        jsonData = JSON.parse(text)
+      } catch (e) {
+        // If not JSON, use the text as is
+        jsonData = text
+      }
+      
+      // Format to HTML
+      const htmlContent = formatJsonToHtml(jsonData)
+      setMeetingHighlights(htmlContent)
+    } catch (error) {
+      console.error('Error fetching meeting highlights:', error)
+      setMeetingHighlights('<p class="error-message">Failed to load meeting highlights.</p>')
+    } finally {
+      setLoadingHighlights(false)
+    }
+  }
+
   // Handle meeting selection
-  const handleMeetingSelect = (index) => {
+  const handleMeetingSelect = async (index) => {
     setSelectedMeetingIndex(index.toString())
     const selectedMeeting = meetings[index]
     setSearchTerm(getDisplayName(selectedMeeting, index))
     setShowDropdown(false)
+    
+    // Extract the meeting ID and fetch highlights
+    const meetingId = selectedMeeting.id || 
+                      selectedMeeting.meetingId || 
+                      selectedMeeting._id || 
+                      selectedMeeting.meeting_id ||
+                      selectedMeeting.ID ||
+                      selectedMeeting.MeetingID
+    
+    if (meetingId) {
+      await fetchMeetingHighlights(meetingId)
+    } else {
+      setMeetingHighlights('Meeting ID not found.')
+    }
   }
 
   // Handle input change
@@ -81,6 +216,7 @@ function PrepForGemini2({ navigate }) {
       const selectedDisplayName = getDisplayName(meetings[parseInt(selectedMeetingIndex)], parseInt(selectedMeetingIndex))
       if (value !== selectedDisplayName) {
         setSelectedMeetingIndex('')
+        setMeetingHighlights('') // Clear highlights when selection is cleared
       }
     }
   }
@@ -190,6 +326,7 @@ function PrepForGemini2({ navigate }) {
       setMessageType('success')
       setSelectedMeetingIndex('') // Clear the selection
       setSearchTerm('') // Clear the search input
+      setMeetingHighlights('') // Clear highlights
       
       // Open Gemini in a new tab
       window.open('https://gemini.google.com/app', '_blank')
@@ -211,49 +348,66 @@ function PrepForGemini2({ navigate }) {
     <div className="prep-for-gemini-2">
       <h1>Prep for Gemini 2</h1>
       <form onSubmit={handleSubmit} className="gemini-form">
-        <div className="form-group">
-          <label htmlFor="meetingId">Select Meeting</label>
-          <div id="combobox-container" className="combobox-container">
-            <input
-              type="text"
-              id="meetingId"
-              value={searchTerm}
-              onChange={handleInputChange}
-              onFocus={handleInputFocus}
-              placeholder="Type to search meetings..."
-              disabled={loading || loadingMeetings}
-              autoComplete="off"
-            />
-            {showDropdown && filteredMeetings.length > 0 && (
-              <ul className="combobox-dropdown">
-                {filteredMeetings.map((meeting) => {
-                  // Find the original index in the meetings array
-                  const index = meetings.findIndex(m => m === meeting)
-                  if (index === -1) return null
-                  const displayName = getDisplayName(meeting, index)
-                  const isSelected = selectedMeetingIndex === index.toString()
-                  return (
-                    <li
-                      key={index}
-                      className={isSelected ? 'selected' : ''}
-                      onClick={() => handleMeetingSelect(index)}
-                    >
-                      {displayName}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-            {showDropdown && searchTerm && filteredMeetings.length === 0 && (
-              <ul className="combobox-dropdown">
-                <li className="no-results">No meetings found</li>
-              </ul>
-            )}
+        <div className="form-group-with-highlights">
+          <div className="form-group combobox-group">
+            <label htmlFor="meetingId">Select Meeting</label>
+            <div id="combobox-container" className="combobox-container">
+              <input
+                type="text"
+                id="meetingId"
+                value={searchTerm}
+                onChange={handleInputChange}
+                onFocus={handleInputFocus}
+                placeholder="Type to search meetings..."
+                disabled={loading || loadingMeetings}
+                autoComplete="off"
+              />
+              {showDropdown && filteredMeetings.length > 0 && (
+                <ul className="combobox-dropdown">
+                  {filteredMeetings.map((meeting) => {
+                    // Find the original index in the meetings array
+                    const index = meetings.findIndex(m => m === meeting)
+                    if (index === -1) return null
+                    const displayName = getDisplayName(meeting, index)
+                    const isSelected = selectedMeetingIndex === index.toString()
+                    return (
+                      <li
+                        key={index}
+                        className={isSelected ? 'selected' : ''}
+                        onClick={() => handleMeetingSelect(index)}
+                      >
+                        {displayName}
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+              {showDropdown && searchTerm && filteredMeetings.length === 0 && (
+                <ul className="combobox-dropdown">
+                  <li className="no-results">No meetings found</li>
+                </ul>
+              )}
+            </div>
+          </div>
+          <div className="highlights-container">
+            <label>Meeting Highlights</label>
+            <div className="highlights-content">
+              {loadingHighlights ? (
+                <div className="highlights-loading">Loading highlights...</div>
+              ) : meetingHighlights ? (
+                <div 
+                  className="highlights-text" 
+                  dangerouslySetInnerHTML={{ __html: meetingHighlights }}
+                />
+              ) : (
+                <div className="highlights-placeholder">Select a meeting to view highlights</div>
+              )}
+            </div>
           </div>
         </div>
         <div className="form-actions">
           <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings}>
-            {loading ? 'Loading...' : 'Submit'}
+            {loading ? 'Loading...' : 'Analyze in Gemini'}
           </button>
           <button type="button" onClick={handleBack} className="back-button">
             Back to Home
