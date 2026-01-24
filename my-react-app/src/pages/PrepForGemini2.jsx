@@ -12,6 +12,8 @@ function PrepForGemini2({ navigate }) {
   const [showDropdown, setShowDropdown] = useState(false)
   const [meetingHighlights, setMeetingHighlights] = useState('')
   const [loadingHighlights, setLoadingHighlights] = useState(false)
+  const [geminiSummary, setGeminiSummary] = useState('')
+  const [loadingGeminiSummary, setLoadingGeminiSummary] = useState(false)
 
   // Fetch meetings on component mount
   useEffect(() => {
@@ -184,6 +186,28 @@ function PrepForGemini2({ navigate }) {
     }
   }
 
+  // Fetch Gemini Summary
+  const fetchGeminiSummary = async (meetingId) => {
+    try {
+      setLoadingGeminiSummary(true)
+      const response = await fetch(
+        `https://tammer.app.n8n.cloud/webhook/summary?id=${encodeURIComponent(meetingId)}`
+      )
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const htmlContent = await response.text()
+      setGeminiSummary(htmlContent)
+    } catch (error) {
+      console.error('Error fetching Gemini summary:', error)
+      setGeminiSummary('<p class="error-message">Failed to load Gemini summary.</p>')
+    } finally {
+      setLoadingGeminiSummary(false)
+    }
+  }
+
   // Handle meeting selection
   const handleMeetingSelect = async (index) => {
     setSelectedMeetingIndex(index.toString())
@@ -200,9 +224,14 @@ function PrepForGemini2({ navigate }) {
                       selectedMeeting.MeetingID
     
     if (meetingId) {
-      await fetchMeetingHighlights(meetingId)
+      // Fetch both highlights and Gemini summary in parallel
+      await Promise.all([
+        fetchMeetingHighlights(meetingId),
+        fetchGeminiSummary(meetingId)
+      ])
     } else {
       setMeetingHighlights('Meeting ID not found.')
+      setGeminiSummary('')
     }
   }
 
@@ -217,6 +246,7 @@ function PrepForGemini2({ navigate }) {
       if (value !== selectedDisplayName) {
         setSelectedMeetingIndex('')
         setMeetingHighlights('') // Clear highlights when selection is cleared
+        setGeminiSummary('') // Clear Gemini summary when selection is cleared
       }
     }
   }
@@ -231,6 +261,7 @@ function PrepForGemini2({ navigate }) {
     setSearchTerm('')
     setSelectedMeetingIndex('')
     setMeetingHighlights('')
+    setGeminiSummary('')
     setShowDropdown(false)
   }
 
@@ -335,6 +366,7 @@ function PrepForGemini2({ navigate }) {
       setSelectedMeetingIndex('') // Clear the selection
       setSearchTerm('') // Clear the search input
       setMeetingHighlights('') // Clear highlights
+      setGeminiSummary('') // Clear Gemini summary
       
       // Open Gemini in a new tab
       window.open('https://gemini.google.com/app', '_blank')
@@ -422,6 +454,21 @@ function PrepForGemini2({ navigate }) {
                 />
               ) : (
                 <div className="highlights-placeholder">Select a meeting to view highlights</div>
+              )}
+            </div>
+          </div>
+          <div className="highlights-container">
+            <label>Gemini Summary</label>
+            <div className="highlights-content">
+              {loadingGeminiSummary ? (
+                <div className="highlights-loading">Loading Gemini summary...</div>
+              ) : geminiSummary ? (
+                <div 
+                  className="highlights-text gemini-summary" 
+                  dangerouslySetInnerHTML={{ __html: geminiSummary }}
+                />
+              ) : (
+                <div className="highlights-placeholder">Select a meeting to view Gemini summary</div>
               )}
             </div>
           </div>

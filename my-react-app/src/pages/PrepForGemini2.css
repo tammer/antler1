@@ -232,6 +232,15 @@
   border: 1px solid #f5c6cb;
 }
 
+.gemini-summary {
+  /* Allow HTML content to render properly */
+  line-height: 1.6;
+}
+
+.gemini-summary * {
+  max-width: 100%;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .prep-for-gemini-2 {
