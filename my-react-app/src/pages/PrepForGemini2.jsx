@@ -199,6 +199,10 @@ function PrepForGemini2({ navigate }) {
       }
 
       const htmlContent = await response.text()
+      if (htmlContent === '') {
+        setGeminiSummary('<p class="error-message">Failed to load Gemini summary. (Probably Gemini is rate limited. Try again later.)</p>')
+        return
+      }
       setGeminiSummary(htmlContent)
     } catch (error) {
       console.error('Error fetching Gemini summary:', error)
