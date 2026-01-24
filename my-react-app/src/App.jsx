@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import GetMeetingSummary from './pages/GetMeetingSummary'
 import PrepForGemini from './pages/PrepForGemini'
+import PrepForGemini2 from './pages/PrepForGemini2'
 import './App.css'
 
 function App() {
@@ -15,6 +16,8 @@ function App() {
         setCurrentPage('get-meeting-summary')
       } else if (path === '/prep-for-gemini') {
         setCurrentPage('prep-for-gemini')
+      } else if (path === '/prep-for-gemini-2') {
+        setCurrentPage('prep-for-gemini-2')
       } else {
         setCurrentPage('home')
       }
@@ -26,6 +29,8 @@ function App() {
       setCurrentPage('get-meeting-summary')
     } else if (path === '/prep-for-gemini') {
       setCurrentPage('prep-for-gemini')
+    } else if (path === '/prep-for-gemini-2') {
+      setCurrentPage('prep-for-gemini-2')
     } else {
       setCurrentPage('home')
     }
@@ -45,6 +50,7 @@ function App() {
       {currentPage === 'home' && <Home navigate={navigate} />}
       {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
       {currentPage === 'prep-for-gemini' && <PrepForGemini navigate={navigate} />}
+      {currentPage === 'prep-for-gemini-2' && <PrepForGemini2 navigate={navigate} />}
     </>
   )
 }

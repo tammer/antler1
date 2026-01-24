@@ -24,6 +24,14 @@ function Home({ navigate }) {
               Prep for Gemini
             </a>
           </li>
+          <li>
+            <a href="/prep-for-gemini-2" onClick={(e) => {
+              e.preventDefault()
+              navigate('prep-for-gemini-2')
+            }}>
+              Prep for Gemini 2
+            </a>
+          </li>
         </ul>
       </nav>
     </div>
