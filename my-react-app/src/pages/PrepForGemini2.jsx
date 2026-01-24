@@ -487,7 +487,10 @@ function PrepForGemini2({ navigate }) {
               <label>Our Own Summary (Better)</label>
               <div className="highlights-content">
                 {loadingGeminiSummary ? (
-                  <div className="highlights-loading">Loading Gemini summary...</div>
+                  <div className="highlights-loading">
+                    <div className="spinner"></div>
+                    <div>Loading Gemini Summary</div>
+                  </div>
                 ) : geminiSummary ? (
                   <div 
                     className="highlights-text gemini-summary" 
