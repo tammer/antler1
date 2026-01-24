@@ -391,55 +391,76 @@ function PrepForGemini2({ navigate }) {
         <div className="form-group-with-highlights">
           <div className="form-group combobox-group">
             <label htmlFor="meetingId">Select Meeting</label>
-            <div id="combobox-container" className="combobox-container">
-              <div className="combobox-input-wrapper">
-                <input
-                  type="text"
-                  id="meetingId"
-                  value={searchTerm}
-                  onChange={handleInputChange}
-                  onFocus={handleInputFocus}
-                  placeholder="Type to search meetings..."
-                  disabled={loading || loadingMeetings}
-                  autoComplete="off"
-                />
-                {(searchTerm || selectedMeetingIndex) && (
-                  <button
-                    type="button"
-                    className="clear-button"
-                    onClick={handleClear}
+            <div className="combobox-link-wrapper">
+              <div id="combobox-container" className="combobox-container">
+                <div className="combobox-input-wrapper">
+                  <input
+                    type="text"
+                    id="meetingId"
+                    value={searchTerm}
+                    onChange={handleInputChange}
+                    onFocus={handleInputFocus}
+                    placeholder="Type to search meetings..."
                     disabled={loading || loadingMeetings}
-                    aria-label="Clear search"
-                  >
-                    ×
-                  </button>
+                    autoComplete="off"
+                  />
+                  {(searchTerm || selectedMeetingIndex) && (
+                    <button
+                      type="button"
+                      className="clear-button"
+                      onClick={handleClear}
+                      disabled={loading || loadingMeetings}
+                      aria-label="Clear search"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+                {showDropdown && filteredMeetings.length > 0 && (
+                  <ul className="combobox-dropdown">
+                    {filteredMeetings.map((meeting) => {
+                      // Find the original index in the meetings array
+                      const index = meetings.findIndex(m => m === meeting)
+                      if (index === -1) return null
+                      const displayName = getDisplayName(meeting, index)
+                      const isSelected = selectedMeetingIndex === index.toString()
+                      return (
+                        <li
+                          key={index}
+                          className={isSelected ? 'selected' : ''}
+                          onClick={() => handleMeetingSelect(index)}
+                        >
+                          {displayName}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+                {showDropdown && searchTerm && filteredMeetings.length === 0 && (
+                  <ul className="combobox-dropdown">
+                    <li className="no-results">No meetings found</li>
+                  </ul>
                 )}
               </div>
-              {showDropdown && filteredMeetings.length > 0 && (
-                <ul className="combobox-dropdown">
-                  {filteredMeetings.map((meeting) => {
-                    // Find the original index in the meetings array
-                    const index = meetings.findIndex(m => m === meeting)
-                    if (index === -1) return null
-                    const displayName = getDisplayName(meeting, index)
-                    const isSelected = selectedMeetingIndex === index.toString()
-                    return (
-                      <li
-                        key={index}
-                        className={isSelected ? 'selected' : ''}
-                        onClick={() => handleMeetingSelect(index)}
-                      >
-                        {displayName}
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-              {showDropdown && searchTerm && filteredMeetings.length === 0 && (
-                <ul className="combobox-dropdown">
-                  <li className="no-results">No meetings found</li>
-                </ul>
-              )}
+              {selectedMeetingIndex !== '' && meetings[parseInt(selectedMeetingIndex)] && (() => {
+                const selectedMeeting = meetings[parseInt(selectedMeetingIndex)]
+                const meetingId = selectedMeeting.id || 
+                                  selectedMeeting.meetingId || 
+                                  selectedMeeting._id || 
+                                  selectedMeeting.meeting_id ||
+                                  selectedMeeting.ID ||
+                                  selectedMeeting.MeetingID
+                return meetingId ? (
+                  <a 
+                    href={`https://app2.meetgeek.ai/meeting/${meetingId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="watch-video-link"
+                  >
+                    Watch the Video
+                  </a>
+                ) : null
+              })()}
             </div>
           </div>
           <div className="highlights-row">
@@ -478,9 +499,6 @@ function PrepForGemini2({ navigate }) {
         <div className="form-actions">
           <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings}>
             {loading ? 'Loading...' : 'Analyze in Gemini'}
-          </button>
-          <button type="button" onClick={handleBack} className="back-button">
-            Back to Home
           </button>
         </div>
       </form>
