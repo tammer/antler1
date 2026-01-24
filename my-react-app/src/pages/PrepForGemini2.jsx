@@ -8,6 +8,8 @@ function PrepForGemini2({ navigate }) {
   const [loadingMeetings, setLoadingMeetings] = useState(true)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('') // 'success' or 'error'
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showDropdown, setShowDropdown] = useState(false)
 
   // Fetch meetings on component mount
   useEffect(() => {
@@ -48,6 +50,60 @@ function PrepForGemini2({ navigate }) {
       return () => clearTimeout(timer)
     }
   }, [messageType, message])
+
+  // Filter meetings based on search term
+  const filteredMeetings = meetings.filter((meeting, index) => {
+    if (!searchTerm.trim()) return true
+    const displayName = meeting.name || meeting.title || meeting.meetingName || meeting.subject || `Meeting ${index + 1}`
+    return displayName.toLowerCase().includes(searchTerm.toLowerCase())
+  })
+
+  // Get display name for selected meeting
+  const getDisplayName = (meeting, index) => {
+    return meeting.name || meeting.title || meeting.meetingName || meeting.subject || `Meeting ${index + 1}`
+  }
+
+  // Handle meeting selection
+  const handleMeetingSelect = (index) => {
+    setSelectedMeetingIndex(index.toString())
+    const selectedMeeting = meetings[index]
+    setSearchTerm(getDisplayName(selectedMeeting, index))
+    setShowDropdown(false)
+  }
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const value = e.target.value
+    setSearchTerm(value)
+    setShowDropdown(true)
+    // Clear selection if user is typing and it doesn't match the selected meeting
+    if (selectedMeetingIndex !== '' && meetings[parseInt(selectedMeetingIndex)]) {
+      const selectedDisplayName = getDisplayName(meetings[parseInt(selectedMeetingIndex)], parseInt(selectedMeetingIndex))
+      if (value !== selectedDisplayName) {
+        setSelectedMeetingIndex('')
+      }
+    }
+  }
+
+  // Handle input focus
+  const handleInputFocus = () => {
+    setShowDropdown(true)
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const combobox = document.getElementById('combobox-container')
+      if (combobox && !combobox.contains(event.target)) {
+        setShowDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -133,6 +189,7 @@ function PrepForGemini2({ navigate }) {
       setMessage('String copied to clipboard successfully!')
       setMessageType('success')
       setSelectedMeetingIndex('') // Clear the selection
+      setSearchTerm('') // Clear the search input
       
       // Open Gemini in a new tab
       window.open('https://gemini.google.com/app', '_blank')
@@ -156,23 +213,43 @@ function PrepForGemini2({ navigate }) {
       <form onSubmit={handleSubmit} className="gemini-form">
         <div className="form-group">
           <label htmlFor="meetingId">Select Meeting</label>
-          <select
-            id="meetingId"
-            value={selectedMeetingIndex}
-            onChange={(e) => setSelectedMeetingIndex(e.target.value)}
-            disabled={loading || loadingMeetings}
-          >
-            <option value="">-- Select a meeting --</option>
-            {meetings.map((meeting, index) => {
-              // Display name from various possible fields
-              const displayName = meeting.name || meeting.title || meeting.meetingName || meeting.subject || `Meeting ${index + 1}`
-              return (
-                <option key={index} value={index}>
-                  {displayName}
-                </option>
-              )
-            })}
-          </select>
+          <div id="combobox-container" className="combobox-container">
+            <input
+              type="text"
+              id="meetingId"
+              value={searchTerm}
+              onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              placeholder="Type to search meetings..."
+              disabled={loading || loadingMeetings}
+              autoComplete="off"
+            />
+            {showDropdown && filteredMeetings.length > 0 && (
+              <ul className="combobox-dropdown">
+                {filteredMeetings.map((meeting) => {
+                  // Find the original index in the meetings array
+                  const index = meetings.findIndex(m => m === meeting)
+                  if (index === -1) return null
+                  const displayName = getDisplayName(meeting, index)
+                  const isSelected = selectedMeetingIndex === index.toString()
+                  return (
+                    <li
+                      key={index}
+                      className={isSelected ? 'selected' : ''}
+                      onClick={() => handleMeetingSelect(index)}
+                    >
+                      {displayName}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+            {showDropdown && searchTerm && filteredMeetings.length === 0 && (
+              <ul className="combobox-dropdown">
+                <li className="no-results">No meetings found</li>
+              </ul>
+            )}
+          </div>
         </div>
         <div className="form-actions">
           <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings}>
