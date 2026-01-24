@@ -25,11 +25,11 @@ function Home({ navigate }) {
             </a>
           </li>
           <li>
-            <a href="/prep-for-gemini-2" onClick={(e) => {
+            <a href="/meetgeek-manager" onClick={(e) => {
               e.preventDefault()
-              navigate('prep-for-gemini-2')
+              navigate('meetgeek-manager')
             }}>
-              Prep for Gemini 2
+              Meetgeek Manager
             </a>
           </li>
         </ul>

@@ -16,8 +16,8 @@ function App() {
         setCurrentPage('get-meeting-summary')
       } else if (path === '/prep-for-gemini') {
         setCurrentPage('prep-for-gemini')
-      } else if (path === '/prep-for-gemini-2') {
-        setCurrentPage('prep-for-gemini-2')
+      } else if (path === '/meetgeek-manager') {
+        setCurrentPage('meetgeek-manager')
       } else {
         setCurrentPage('home')
       }
@@ -29,8 +29,8 @@ function App() {
       setCurrentPage('get-meeting-summary')
     } else if (path === '/prep-for-gemini') {
       setCurrentPage('prep-for-gemini')
-    } else if (path === '/prep-for-gemini-2') {
-      setCurrentPage('prep-for-gemini-2')
+    } else if (path === '/meetgeek-manager') {
+      setCurrentPage('meetgeek-manager')
     } else {
       setCurrentPage('home')
     }
@@ -50,7 +50,7 @@ function App() {
       {currentPage === 'home' && <Home navigate={navigate} />}
       {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
       {currentPage === 'prep-for-gemini' && <PrepForGemini navigate={navigate} />}
-      {currentPage === 'prep-for-gemini-2' && <PrepForGemini2 navigate={navigate} />}
+      {currentPage === 'meetgeek-manager' && <PrepForGemini2 navigate={navigate} />}
     </>
   )
 }

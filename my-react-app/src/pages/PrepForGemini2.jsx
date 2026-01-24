@@ -386,7 +386,7 @@ function PrepForGemini2({ navigate }) {
 
   return (
     <div className="prep-for-gemini-2">
-      <h1>Prep for Gemini 2</h1>
+      <h1>Meetgeek Manager</h1>
       <form onSubmit={handleSubmit} className="gemini-form">
         <div className="form-group-with-highlights">
           <div className="form-group combobox-group">
