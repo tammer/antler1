@@ -154,10 +154,17 @@
   width: 100%;
 }
 
+.highlights-row {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+}
+
 .highlights-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex: 1;
 }
 
 .highlights-container label {
@@ -246,6 +253,10 @@
   .prep-for-gemini-2 {
     max-width: 100%;
     padding: 1rem;
+  }
+
+  .highlights-row {
+    flex-direction: column;
   }
 }
 
