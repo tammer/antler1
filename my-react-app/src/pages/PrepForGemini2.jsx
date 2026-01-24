@@ -226,6 +226,14 @@ function PrepForGemini2({ navigate }) {
     setShowDropdown(true)
   }
 
+  // Handle clear button
+  const handleClear = () => {
+    setSearchTerm('')
+    setSelectedMeetingIndex('')
+    setMeetingHighlights('')
+    setShowDropdown(false)
+  }
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -352,16 +360,29 @@ function PrepForGemini2({ navigate }) {
           <div className="form-group combobox-group">
             <label htmlFor="meetingId">Select Meeting</label>
             <div id="combobox-container" className="combobox-container">
-              <input
-                type="text"
-                id="meetingId"
-                value={searchTerm}
-                onChange={handleInputChange}
-                onFocus={handleInputFocus}
-                placeholder="Type to search meetings..."
-                disabled={loading || loadingMeetings}
-                autoComplete="off"
-              />
+              <div className="combobox-input-wrapper">
+                <input
+                  type="text"
+                  id="meetingId"
+                  value={searchTerm}
+                  onChange={handleInputChange}
+                  onFocus={handleInputFocus}
+                  placeholder="Type to search meetings..."
+                  disabled={loading || loadingMeetings}
+                  autoComplete="off"
+                />
+                {(searchTerm || selectedMeetingIndex) && (
+                  <button
+                    type="button"
+                    className="clear-button"
+                    onClick={handleClear}
+                    disabled={loading || loadingMeetings}
+                    aria-label="Clear search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
               {showDropdown && filteredMeetings.length > 0 && (
                 <ul className="combobox-dropdown">
                   {filteredMeetings.map((meeting) => {
