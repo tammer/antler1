@@ -243,16 +243,16 @@
 
 /* Highlights formatting styles */
 .highlights-formatted {
-  line-height: 1.6;
+  line-height: 1.0;
 }
 
 .highlights-formatted h2 {
-  margin: 1.5rem 0 0.75rem 0;
+  margin: 1.5rem 0 0.0rem 0;
   color: #333;
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  border-bottom: 2px solid #007bff;
-  padding-bottom: 0.5rem;
+  /* border-bottom: 2px solid #007bff; */
+  padding-bottom: 0.1rem;
 }
 
 .highlights-formatted h2:first-child {
@@ -260,9 +260,9 @@
 }
 
 .highlights-formatted p {
-  margin: 0.75rem 0 1.25rem 0;
+  margin: 0.0rem 0 1.0rem 0;
   color: #555;
-  line-height: 1.8;
+  line-height: 1.2;
 }
 
 .highlights-formatted p:last-child {
