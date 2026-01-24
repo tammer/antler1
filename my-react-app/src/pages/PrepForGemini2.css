@@ -1,5 +1,5 @@
 .prep-for-gemini-2 {
-  max-width: 1200px;
+  width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -143,12 +143,11 @@
   background-color: white;
 }
 
-/* Two-column layout for combobox and highlights */
+/* Vertical layout for combobox and highlights */
 .form-group-with-highlights {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .combobox-group {
@@ -235,11 +234,6 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .form-group-with-highlights {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
   .prep-for-gemini-2 {
     max-width: 100%;
     padding: 1rem;
