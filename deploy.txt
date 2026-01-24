@@ -1,0 +1,24 @@
+mkdir -p /home/$USER/private/antler && cd /home/$USER/private/antler
+
+
+sureapp project create \
+  --engine node \
+  --engine-version lts \
+  --release-dir "/home/$USER/private/antler" \
+  antler
+
+  sureapp project shell antler
+
+  npm install
+
+  npm run build
+
+npx serve -s dist
+
+
+yet to try:
+
+sureapp project modify \
+  --start-cmd "npx serve -s /home/tammer/private/antler/antler1/my-react-app/dist"
+
+sureapp service manage --enable
