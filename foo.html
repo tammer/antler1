@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTMX Hello World</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+   
+</head>
+<body>
+
+    <h1>HTMX Demo</h1>
+
+    <label for="id-input">ID:</label>
+    <input type="text" id="id-input" name="id" placeholder="Enter ID" value="18bf61a9-e9d7-49dc-86db-4172927d601c" style="margin: 10px; padding: 5px; width: 300px;">
+    <br><br>
+
+    <button hx-get="https://tammer.app.n8n.cloud/webhook/summary" 
+            hx-target="#response-dest" 
+            hx-swap="innerHTML"
+            hx-vals='js:{id: document.getElementById("id-input").value}'>
+        Click to Load a Programming Joke
+    </button>
+
+    <div id="response-dest"></div>
+
+</body>
+</html>

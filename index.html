@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Summary</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+</head>
+<body>
+
+    <h1>Meeting Summary</h1>
+
+    <div class="form-container">
+        <form hx-get="https://tammer.app.n8n.cloud/webhook/summary"
+              hx-target="#response-dest"
+              hx-swap="innerHTML"
+              hx-indicator="#loading-indicator">
+            <label for="meeting-id">Meeting ID</label>
+            <input type="text" 
+                   id="meeting-id" 
+                   name="id" 
+                   placeholder="Enter meeting ID"
+                   required>
+            <button type="submit">Get Summary</button>
+        </form>
+    </div>
+
+    <div id="response-dest"></div>
+    <div id="loading-indicator" class="htmx-indicator loading" style="display: none; margin-top: 10px; color: white;">
+        Loading...
+    </div>
+
+</body>
+</html>
