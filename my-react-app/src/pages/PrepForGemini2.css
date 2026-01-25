@@ -4,7 +4,9 @@
   margin: 0 auto;
   padding: 2rem;
   background: #ffffff;
-  min-height: 100vh;
+  min-height: 90vh;
+  max-height: 90vh;
+  overscroll-behavior: none;
 }
 
 .prep-for-gemini-2 h1 {
@@ -244,6 +246,7 @@
   max-height: 600px;
   overflow-y: auto;
   background: #ffffff;
+  overscroll-behavior: none;
 }
 
 /* Custom scrollbar */
