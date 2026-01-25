@@ -469,41 +469,43 @@ function PrepForGemini2({ navigate }) {
               </button>
             </div>
           </div>
-          <div className="highlights-row">
-            <div className="highlights-container">
-              <label>Meetgek Generic Summary (not that good)</label>
-              <div className="highlights-content">
-                {loadingHighlights ? (
-                  <div className="highlights-loading">Loading highlights...</div>
-                ) : meetingHighlights ? (
-                  <div 
-                    className="highlights-text" 
-                    dangerouslySetInnerHTML={{ __html: meetingHighlights }}
-                  />
-                ) : (
-                  <div className="highlights-placeholder">Select a meeting to view highlights</div>
-                )}
+          {selectedMeetingIndex !== '' && (
+            <div className="highlights-row">
+              <div className="highlights-container">
+                <label>Meetgek Generic Summary (not that good)</label>
+                <div className="highlights-content">
+                  {loadingHighlights ? (
+                    <div className="highlights-loading">Loading highlights...</div>
+                  ) : meetingHighlights ? (
+                    <div 
+                      className="highlights-text" 
+                      dangerouslySetInnerHTML={{ __html: meetingHighlights }}
+                    />
+                  ) : (
+                    <div className="highlights-placeholder">Select a meeting to view highlights</div>
+                  )}
+                </div>
+              </div>
+              <div className="highlights-container">
+                <label>Our Own Summary (Better)</label>
+                <div className="highlights-content">
+                  {loadingGeminiSummary ? (
+                    <div className="highlights-loading">
+                      <div className="spinner"></div>
+                      <div>Loading Gemini Summary</div>
+                    </div>
+                  ) : geminiSummary ? (
+                    <div 
+                      className="highlights-text gemini-summary" 
+                      dangerouslySetInnerHTML={{ __html: geminiSummary }}
+                    />
+                  ) : (
+                    <div className="highlights-placeholder">Select a meeting to view Gemini summary</div>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="highlights-container">
-              <label>Our Own Summary (Better)</label>
-              <div className="highlights-content">
-                {loadingGeminiSummary ? (
-                  <div className="highlights-loading">
-                    <div className="spinner"></div>
-                    <div>Loading Gemini Summary</div>
-                  </div>
-                ) : geminiSummary ? (
-                  <div 
-                    className="highlights-text gemini-summary" 
-                    dangerouslySetInnerHTML={{ __html: geminiSummary }}
-                  />
-                ) : (
-                  <div className="highlights-placeholder">Select a meeting to view Gemini summary</div>
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </form>
       {message && (
