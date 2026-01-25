@@ -168,20 +168,26 @@
   color: #57606a;
 }
 
-.watch-video-link {
-  display: inline-flex;
-  align-items: center;
-  color: #0969da;
-  text-decoration: none;
-  font-weight: 400;
-  transition: color 0.15s ease-in-out;
-  white-space: nowrap;
+.watch-video-button {
+  padding: 0.375rem 1rem;
   font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  background-color: #ffffff;
+  color: #24292f;
+  white-space: nowrap;
 }
 
-.watch-video-link:hover {
-  color: #0550ae;
-  text-decoration: underline;
+.watch-video-button:hover {
+  background-color: #f6f8fa;
+  border-color: #d1d5da;
+}
+
+.watch-video-button:active {
+  background-color: #eaeef2;
 }
 
 /* Vertical layout for combobox and highlights */
@@ -192,13 +198,22 @@
 }
 
 .combobox-group {
-  width: 600px;
+  width: 1000px;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.combobox-group label {
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .combobox-link-wrapper {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  flex: 1;
 }
 
 .highlights-row {
@@ -229,11 +244,6 @@
   max-height: 600px;
   overflow-y: auto;
   background: #ffffff;
-  transition: border-color 0.15s ease-in-out;
-}
-
-.highlights-content:hover {
-  border-color: #0969da;
 }
 
 /* Custom scrollbar */
@@ -580,8 +590,8 @@
     align-items: stretch;
   }
 
-  .watch-video-link {
-    justify-content: center;
+  .watch-video-button {
+    width: 100%;
   }
 
   .form-actions {

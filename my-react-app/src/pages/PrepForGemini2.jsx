@@ -455,14 +455,13 @@ function PrepForGemini2({ navigate }) {
                                   selectedMeeting.ID ||
                                   selectedMeeting.MeetingID
                 return meetingId ? (
-                  <a 
-                    href={`https://app2.meetgeek.ai/meeting/${meetingId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="watch-video-link"
+                  <button 
+                    type="button"
+                    onClick={() => window.open(`https://app2.meetgeek.ai/meeting/${meetingId}`, '_blank', 'noopener,noreferrer')}
+                    className="watch-video-button"
                   >
-                    Watch the Video
-                  </a>
+                    Watch on Meetgeek
+                  </button>
                 ) : null
               })()}
             </div>
