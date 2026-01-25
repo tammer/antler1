@@ -464,6 +464,9 @@ function PrepForGemini2({ navigate }) {
                   </button>
                 ) : null
               })()}
+              <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings} className="analyze-button">
+                {loading ? 'Loading...' : 'Analyze in Gemini'}
+              </button>
             </div>
           </div>
           <div className="highlights-row">
@@ -501,11 +504,6 @@ function PrepForGemini2({ navigate }) {
               </div>
             </div>
           </div>
-        </div>
-        <div className="form-actions">
-          <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings}>
-            {loading ? 'Loading...' : 'Analyze in Gemini'}
-          </button>
         </div>
       </form>
       {message && (
