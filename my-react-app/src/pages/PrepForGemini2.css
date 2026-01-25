@@ -2,12 +2,14 @@
   width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: 0.6rem;
 }
 
 .prep-for-gemini-2 h1 {
   margin-bottom: 2rem;
+  margin-top: 0rem;
   color: #333;
-  text-align: center;
+  /* text-align: center; */
 }
 
 .gemini-form {
