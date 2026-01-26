@@ -281,6 +281,7 @@ function Notes() {
   const [notesError, setNotesError] = useState('')
   const [notesReloadKey, setNotesReloadKey] = useState(0)
   const [isLoadingModalAttendees, setIsLoadingModalAttendees] = useState(false)
+  const [deletingNoteId, setDeletingNoteId] = useState(null)
 
   const formatNoteDate = (createdAt) => {
     if (!createdAt) return ''
@@ -302,62 +303,53 @@ function Notes() {
     const loadNotes = async () => {
       setNotesError('')
 
-      if (!filterHubspotId) {
-        setNotes([])
-        setIsLoadingNotes(false)
-        return
-      }
-
       if (!supabaseReady) {
         setNotes([])
         setNotesError('Missing Supabase config: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+        setAttendeesByNoteId({})
         setIsLoadingNotes(false)
         return
       }
 
       setIsLoadingNotes(true)
       try {
-        // 1) find note_ids from attendees for this hubspot_id
         const attendeesTableCandidates = ['attendees', 'Attendees']
-        let attendeeRows = null
-        let lastAttendeeError = null
-
-        for (const tableName of attendeesTableCandidates) {
-          const { data, error } = await supabase
-            .from(tableName)
-            .select('note_id')
-            .eq('hubspot_id', filterHubspotId)
-
-          if (!error) {
-            attendeeRows = data ?? []
-            lastAttendeeError = null
-            break
-          }
-          lastAttendeeError = error
-        }
-
-        if (lastAttendeeError) throw lastAttendeeError
-
-        const noteIds = Array.from(new Set((attendeeRows ?? []).map((r) => r.note_id))).filter(Boolean)
-        if (noteIds.length === 0) {
-          if (!cancelled) {
-            setNotes([])
-            setAttendeesByNoteId({})
-          }
-          return
-        }
-
-        // 2) fetch notes by id
         const notesTableCandidates = ['notes', 'Notes']
-        let noteRows = null
-        let lastNotesError = null
+        let noteIds = []
+        let noteRows = []
 
-        // Also fetch attendees for those notes (so we can display everyone associated)
-        const attendeesForNotesTableCandidates = ['attendees', 'Attendees']
-        let allAttendeesRows = null
-        let lastAllAttendeesError = null
+        if (filterHubspotId) {
+          // 1) find note_ids from attendees for this hubspot_id
+          let attendeeRows = null
+          let lastAttendeeError = null
 
-        const fetchNotes = async () => {
+          for (const tableName of attendeesTableCandidates) {
+            const { data, error } = await supabase
+              .from(tableName)
+              .select('note_id')
+              .eq('hubspot_id', filterHubspotId)
+
+            if (!error) {
+              attendeeRows = data ?? []
+              lastAttendeeError = null
+              break
+            }
+            lastAttendeeError = error
+          }
+
+          if (lastAttendeeError) throw lastAttendeeError
+
+          noteIds = Array.from(new Set((attendeeRows ?? []).map((r) => r.note_id))).filter(Boolean)
+          if (noteIds.length === 0) {
+            if (!cancelled) {
+              setNotes([])
+              setAttendeesByNoteId({})
+            }
+            return
+          }
+
+          // 2) fetch notes by id
+          let lastNotesError = null
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
@@ -368,14 +360,38 @@ function Notes() {
             if (!error) {
               noteRows = data ?? []
               lastNotesError = null
-              return
+              break
             }
             lastNotesError = error
           }
+          if (lastNotesError) throw lastNotesError
+        } else {
+          // No filter: show 5 most recent notes
+          let lastNotesError = null
+          for (const tableName of notesTableCandidates) {
+            const { data, error } = await supabase
+              .from(tableName)
+              .select('id,note,created_at')
+              .order('created_at', { ascending: false })
+              .limit(5)
+
+            if (!error) {
+              noteRows = data ?? []
+              lastNotesError = null
+              break
+            }
+            lastNotesError = error
+          }
+          if (lastNotesError) throw lastNotesError
+
+          noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
         }
 
-        const fetchAllAttendees = async () => {
-          for (const tableName of attendeesForNotesTableCandidates) {
+        // Fetch attendees for the loaded notes (so we can display everyone associated)
+        let allAttendeesRows = null
+        let lastAllAttendeesError = null
+        if (noteIds.length > 0) {
+          for (const tableName of attendeesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
               .select('note_id,name')
@@ -384,16 +400,13 @@ function Notes() {
             if (!error) {
               allAttendeesRows = data ?? []
               lastAllAttendeesError = null
-              return
+              break
             }
             lastAllAttendeesError = error
           }
         }
 
-        await Promise.all([fetchNotes(), fetchAllAttendees()])
-
-        if (lastNotesError) throw lastNotesError
-        // attendees fetch failure shouldn't block note display, but we'll still show an error if it happens
+        // attendees fetch failure shouldn't block note display
         if (lastAllAttendeesError) {
           console.error('Failed to load attendees for notes:', lastAllAttendeesError)
         }
@@ -502,6 +515,77 @@ function Notes() {
       console.error('Failed to load attendees for note:', err)
     } finally {
       setIsLoadingModalAttendees(false)
+    }
+  }
+
+  const handleDeleteNote = async (noteRow) => {
+    if (!noteRow?.id) return
+
+    const ok = window.confirm('Delete this note? This cannot be undone.')
+    if (!ok) return
+
+    setNotesError('')
+
+    if (!supabaseReady) {
+      setNotesError('Missing Supabase config: set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    setDeletingNoteId(noteRow.id)
+    try {
+      const attendeesTableCandidates = ['attendees', 'Attendees']
+      let lastAttendeesError = null
+
+      // Delete attendees first (in case there's no ON DELETE CASCADE)
+      for (const tableName of attendeesTableCandidates) {
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('note_id', noteRow.id)
+        if (!error) {
+          lastAttendeesError = null
+          break
+        }
+        lastAttendeesError = error
+      }
+      // If attendees table doesn't exist, it's fine; note delete will still be attempted.
+      if (lastAttendeesError) {
+        console.error('Failed to delete attendees for note:', lastAttendeesError)
+      }
+
+      const notesTableCandidates = ['notes', 'Notes']
+      let lastNotesError = null
+
+      for (const tableName of notesTableCandidates) {
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('id', noteRow.id)
+        if (!error) {
+          lastNotesError = null
+          break
+        }
+        lastNotesError = error
+      }
+      if (lastNotesError) throw lastNotesError
+
+      // Update UI immediately
+      setNotes((prev) => prev.filter((n) => n.id !== noteRow.id))
+      setAttendeesByNoteId((prev) => {
+        const next = { ...prev }
+        delete next[noteRow.id]
+        return next
+      })
+
+      if (isModalOpen && editingNoteId === noteRow.id) {
+        closeModal()
+      }
+
+      setNotesReloadKey((k) => k + 1)
+    } catch (err) {
+      setNotesError(err?.message || 'Failed to delete note.')
+    } finally {
+      setDeletingNoteId(null)
     }
   }
 
@@ -636,6 +720,11 @@ function Notes() {
             Showing notes for <strong>{filterPerson.name}</strong>
           </div>
         )}
+        {!filterPerson && (
+          <div className="notes-subtitle">
+            Showing 5 most recent notes
+          </div>
+        )}
 
         {isLoadingNotes && (
           <div className="message info">Loading notes...</div>
@@ -646,7 +735,10 @@ function Notes() {
         )}
 
         {!isLoadingNotes && !notesError && filterHubspotId && notes.length === 0 && (
-          <div className="notes-empty">No notes found for this person.</div>
+          <div className="notes-empty">No notes found for this attendee.</div>
+        )}
+        {!isLoadingNotes && !notesError && !filterHubspotId && notes.length === 0 && (
+          <div className="notes-empty">No notes yet.</div>
         )}
 
         {!isLoadingNotes && !notesError && notes.length > 0 && (
@@ -655,13 +747,24 @@ function Notes() {
               <div key={n.id} className="notes-card">
                 <div className="notes-card-header">
                   <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
-                  <button
-                    type="button"
-                    className="notes-edit-button"
-                    onClick={() => openEditModal(n)}
-                  >
-                    Edit
-                  </button>
+                  <div className="notes-card-actions">
+                    <button
+                      type="button"
+                      className="notes-edit-button"
+                      onClick={() => openEditModal(n)}
+                      disabled={deletingNoteId === n.id}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="notes-delete-button"
+                      onClick={() => handleDeleteNote(n)}
+                      disabled={deletingNoteId === n.id}
+                    >
+                      {deletingNoteId === n.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </div>
                 <div className="notes-card-text">{n.note}</div>
                 {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (

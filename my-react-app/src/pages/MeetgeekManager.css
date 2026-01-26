@@ -441,6 +441,12 @@
   margin-bottom: 0;
 }
 
+.notes-card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .notes-edit-button {
   padding: 0.25rem 0.75rem;
   font-size: 0.8125rem;
@@ -461,6 +467,35 @@
 
 .notes-edit-button:active {
   background-color: #eaeef2;
+}
+
+.notes-delete-button {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid #cf222e;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  background-color: #cf222e;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.notes-delete-button:hover:not(:disabled) {
+  background-color: #a40e26;
+  border-color: #a40e26;
+}
+
+.notes-delete-button:active:not(:disabled) {
+  background-color: #8a0c20;
+  border-color: #8a0c20;
+}
+
+.notes-delete-button:disabled,
+.notes-edit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .notes-card-text {
