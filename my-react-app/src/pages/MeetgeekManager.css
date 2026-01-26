@@ -247,6 +247,25 @@
   margin-top: 1rem;
 }
 
+/* Notes page filter: keep combobox compact */
+.notes-filter .notes-people-group {
+  max-width: none;
+}
+
+.notes-people-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notes-people-label {
+  white-space: nowrap;
+}
+
+.notes-people-control {
+  width: 350px;
+}
+
 .notes-selected-people {
   display: flex;
   flex-wrap: wrap;
