@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './MeetgeekManager.css'
 import { supabase } from '../lib/supabaseClient'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
   const [query, setQuery] = useState('')
@@ -905,7 +907,11 @@ function Notes() {
                     </button>
                   </div>
                 </div>
-                <div className="notes-card-text">{n.note}</div>
+                <div className="notes-card-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {n.note ?? ''}
+                  </ReactMarkdown>
+                </div>
                 {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
                   <div className="notes-card-attendees">
                     <div className="notes-card-attendees-label">Attendees</div>
