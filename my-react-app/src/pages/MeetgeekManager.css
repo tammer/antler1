@@ -241,6 +241,89 @@
   color: #57606a;
 }
 
+.notes-people-group {
+  width: 100%;
+  max-width: 720px;
+  margin-top: 1rem;
+}
+
+.notes-selected-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.notes-person-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #d1d5da;
+  background: #f6f8fa;
+  color: #24292f;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.notes-person-chip:hover {
+  background: #eaeef2;
+}
+
+.notes-person-chip-name {
+  font-weight: 500;
+}
+
+.notes-person-chip-remove {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #57606a;
+  border: 1px solid transparent;
+}
+
+.notes-person-chip:hover .notes-person-chip-remove {
+  color: #24292f;
+  border-color: #d1d5da;
+  background: #ffffff;
+}
+
+.notes-person-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.notes-person-option-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.notes-person-option-name {
+  font-weight: 600;
+}
+
+.notes-person-option-email {
+  font-size: 0.8125rem;
+  color: #57606a;
+}
+
+.combobox-dropdown li.selected .notes-person-option-email {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.notes-person-option-check {
+  width: 18px;
+  text-align: center;
+  font-weight: 700;
+}
+
 .watch-video-button {
   padding: 0.375rem 1rem;
   font-size: 0.875rem;
