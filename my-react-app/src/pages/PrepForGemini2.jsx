@@ -397,12 +397,13 @@ function PrepForGemini2({ navigate }) {
             type="button"
             className="title-tooltip-trigger"
             aria-label="Meetgeek Manager help"
-            title="Here is some text (update me)"
+            title="Info"
           >
             ?
           </button>
           <span role="tooltip" className="title-tooltip-content">
-            Placeholder tooltip text (update me)
+            Search by meeting name, date or meeting ID.
+
           </span>
         </span>
       </h1>
