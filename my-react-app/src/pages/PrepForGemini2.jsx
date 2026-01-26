@@ -481,9 +481,28 @@ function PrepForGemini2({ navigate }) {
                   </button>
                 ) : null
               })()}
-              <button type="submit" disabled={loading || selectedMeetingIndex === '' || loadingMeetings} className="analyze-button">
-                {loading ? 'Loading...' : 'Analyze in Gemini'}
-              </button>
+              <div className="analyze-button-with-tooltip">
+                <button
+                  type="submit"
+                  disabled={loading || selectedMeetingIndex === '' || loadingMeetings}
+                  className="analyze-button"
+                >
+                  {loading ? 'Loading...' : 'Analyze in Gemini'}
+                </button>
+                <span className="title-tooltip analyze-tooltip">
+                  <button
+                    type="button"
+                    className="title-tooltip-trigger"
+                    aria-label="Analyze in Gemini help"
+                    title="Info"
+                  >
+                    ?
+                  </button>
+                  <span role="tooltip" className="title-tooltip-content">
+                    Click here to open gemini. Transcript is loaded to clipboard for you to paste as prompt.
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
           {selectedMeetingIndex !== '' && (

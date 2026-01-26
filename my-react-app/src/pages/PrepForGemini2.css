@@ -276,6 +276,12 @@
   white-space: nowrap;
 }
 
+.analyze-button-with-tooltip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .analyze-button:hover:not(:disabled) {
   background-color: #2c974b;
   border-color: #2c974b;
@@ -697,6 +703,14 @@
   .watch-video-button,
   .analyze-button {
     width: 100%;
+  }
+
+  .analyze-button-with-tooltip {
+    width: 100%;
+  }
+
+  .analyze-button-with-tooltip .analyze-button {
+    flex: 1;
   }
 
   .form-actions {
