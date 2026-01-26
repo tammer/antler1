@@ -648,6 +648,12 @@
   line-height: 1;
 }
 
+.notes-attendee-chip--special {
+  background: #ffe3e3;
+  border-color: #f3b4b4;
+  color: #7a1d1d;
+}
+
 .watch-video-button {
   padding: 0.375rem 1rem;
   font-size: 0.875rem;

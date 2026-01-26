@@ -312,6 +312,11 @@ function Notes({
     return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
   }
 
+  const isSingleDigitHubspotId = (hubspotId) => {
+    const s = String(hubspotId ?? '').trim()
+    return /^\d$/.test(s)
+  }
+
   const filterPerson = useMemo(() => {
     if (!filterHubspotId) return null
     return people.find((p) => p.hubspot_id === filterHubspotId) ?? null
@@ -501,7 +506,7 @@ function Notes({
           for (const tableName of attendeesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('note_id,name')
+              .select('note_id,name,hubspot_id')
               .in('note_id', noteIds)
 
             if (!error) {
@@ -520,14 +525,22 @@ function Notes({
 
         const attendeeMap = {}
         for (const row of allAttendeesRows ?? []) {
-          const id = row?.note_id
+          const noteId = row?.note_id
           const name = row?.name
-          if (!id || !name) continue
-          attendeeMap[id] ??= []
-          attendeeMap[id].push(name)
+          if (!noteId || !name) continue
+          attendeeMap[noteId] ??= []
+          attendeeMap[noteId].push({
+            name: String(name),
+            hubspot_id: row?.hubspot_id != null ? String(row.hubspot_id) : ''
+          })
         }
-        Object.keys(attendeeMap).forEach((id) => {
-          attendeeMap[id] = Array.from(new Set(attendeeMap[id])).sort((a, b) => a.localeCompare(b))
+        Object.keys(attendeeMap).forEach((noteId) => {
+          const unique = new Map()
+          for (const a of attendeeMap[noteId]) {
+            const key = `${a.hubspot_id ?? ''}|${a.name ?? ''}`
+            if (!unique.has(key)) unique.set(key, a)
+          }
+          attendeeMap[noteId] = Array.from(unique.values()).sort((a, b) => a.name.localeCompare(b.name))
         })
 
         if (!cancelled) {
@@ -875,9 +888,16 @@ function Notes({
                     <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
                     {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
                       <div className="notes-attendees notes-attendees-inline">
-                        {attendeesByNoteId[n.id].map((name) => (
-                          <span key={`${n.id}-${name}`} className="notes-attendee-chip">
-                            {name}
+                        {attendeesByNoteId[n.id].map((a) => (
+                          <span
+                            key={`${n.id}-${a.hubspot_id || 'unknown'}-${a.name}`}
+                            className={`notes-attendee-chip${
+                              isSingleDigitHubspotId(a.hubspot_id)
+                                ? ' notes-attendee-chip--special'
+                                : ''
+                            }`}
+                          >
+                            {a.name}
                           </span>
                         ))}
                       </div>
