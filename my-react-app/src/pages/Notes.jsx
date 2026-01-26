@@ -838,8 +838,8 @@ function Notes({
           </div>
         )}
         {!filterPerson && (
-          <div className="notes-subtitle">
-            Showing 5 most recent notes
+          <div className="notes-subtitle notes-subtitle-recent">
+            Recent Meetings
           </div>
         )}
 
@@ -863,7 +863,18 @@ function Notes({
             {notes.map((n) => (
               <div key={n.id} className="notes-card">
                 <div className="notes-card-header">
-                  <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
+                  <div className="notes-card-top">
+                    <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
+                    {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
+                      <div className="notes-attendees notes-attendees-inline">
+                        {attendeesByNoteId[n.id].map((name) => (
+                          <span key={`${n.id}-${name}`} className="notes-attendee-chip">
+                            {name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <div className="notes-card-actions">
                     <button
                       type="button"
@@ -888,18 +899,6 @@ function Notes({
                     {n.note ?? ''}
                   </ReactMarkdown>
                 </div>
-                {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
-                  <div className="notes-card-attendees">
-                    <div className="notes-card-attendees-label">Attendees</div>
-                    <div className="notes-attendees">
-                      {attendeesByNoteId[n.id].map((name) => (
-                        <span key={`${n.id}-${name}`} className="notes-attendee-chip">
-                          {name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
