@@ -888,18 +888,41 @@ function Notes({
                     <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
                     {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
                       <div className="notes-attendees notes-attendees-inline">
-                        {attendeesByNoteId[n.id].map((a) => (
-                          <span
-                            key={`${n.id}-${a.hubspot_id || 'unknown'}-${a.name}`}
-                            className={`notes-attendee-chip${
-                              isSingleDigitHubspotId(a.hubspot_id)
-                                ? ' notes-attendee-chip--special'
-                                : ''
-                            }`}
-                          >
-                            {a.name}
-                          </span>
-                        ))}
+                        {attendeesByNoteId[n.id].map((a) => {
+                          const hubspotId = String(a.hubspot_id ?? '').trim()
+                          const key = `${n.id}-${hubspotId || 'unknown'}-${a.name}`
+                          const isHubspotPerson =
+                            Boolean(hubspotId) && !isSingleDigitHubspotId(hubspotId)
+
+                          const className = `notes-attendee-chip${
+                            isSingleDigitHubspotId(hubspotId)
+                              ? ' notes-attendee-chip--special'
+                              : ''
+                          }`
+
+                          if (isHubspotPerson) {
+                            return (
+                              <a
+                                key={key}
+                                className={className}
+                                href={`https://app-eu1.hubspot.com/contacts/143614254/record/0-1/${encodeURIComponent(
+                                  hubspotId
+                                )}/`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="Open in HubSpot"
+                              >
+                                {a.name}
+                              </a>
+                            )
+                          }
+
+                          return (
+                            <span key={key} className={className}>
+                              {a.name}
+                            </span>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
