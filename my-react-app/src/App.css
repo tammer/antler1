@@ -132,3 +132,37 @@
   border-radius: 6px;
   color: #c33;
 }
+
+.app-shell {
+  width: 100%;
+}
+
+.navbar {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar__home {
+  color: inherit;
+  font-weight: 600;
+}
+
+.navbar__home:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(36, 36, 36, 0.9);
+  }
+}

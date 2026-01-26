@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import NavBar from './components/NavBar'
 import Home from './pages/Home'
 import GetMeetingSummary from './pages/GetMeetingSummary'
 import MeetgeekManager from './pages/MeetgeekManager'
@@ -46,12 +47,15 @@ function App() {
   }
 
   return (
-    <>
-      {currentPage === 'home' && <Home navigate={navigate} />}
-      {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
-      {currentPage === 'meetgeek-manager' && <MeetgeekManager navigate={navigate} />}
-      {currentPage === 'notes' && <Notes />}
-    </>
+    <div className="app-shell">
+      <NavBar navigate={navigate} />
+      <div className="app-shell__content">
+        {currentPage === 'home' && <Home navigate={navigate} />}
+        {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
+        {currentPage === 'meetgeek-manager' && <MeetgeekManager navigate={navigate} />}
+        {currentPage === 'notes' && <Notes />}
+      </div>
+    </div>
   )
 }
 
