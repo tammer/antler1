@@ -160,6 +160,39 @@
   text-decoration: underline;
 }
 
+.navbar__spacer {
+  flex: 1;
+}
+
+.navbar__auth {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.navbar__user {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  max-width: 40vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navbar__authButton {
+  padding: 0.45em 0.9em;
+}
+
+.app-shell__content {
+  width: 100%;
+}
+
+.app-shell__loading {
+  padding: 2rem 1rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
 @media (prefers-color-scheme: dark) {
   .navbar {
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);

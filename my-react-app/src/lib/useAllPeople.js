@@ -56,7 +56,7 @@ function mergePeople(staticPeople, remotePeople) {
   return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export function useAllPeople() {
+export function useAllPeople({ enabled = true } = {}) {
   const [remotePeople, setRemotePeople] = useState([])
   const [isLoadingRemotePeople, setIsLoadingRemotePeople] = useState(false)
   const [remotePeopleError, setRemotePeopleError] = useState('')
@@ -66,6 +66,16 @@ export function useAllPeople() {
   const [allPeopleError, setAllPeopleError] = useState('')
 
   useEffect(() => {
+    if (!enabled) {
+      setRemotePeople([])
+      setRemotePeopleError('')
+      setIsLoadingRemotePeople(false)
+      setStaticPeople(null)
+      setAllPeopleError('')
+      setIsLoadingAllPeople(false)
+      return
+    }
+
     let cancelled = false
     const controller = new AbortController()
 
@@ -97,9 +107,10 @@ export function useAllPeople() {
       cancelled = true
       controller.abort()
     }
-  }, [])
+  }, [enabled])
 
   const ensureAllPeopleLoaded = useCallback(async () => {
+    if (!enabled) return
     if (isLoadingAllPeople) return
     if ((staticPeople?.length ?? 0) > 0) return
 
@@ -115,7 +126,7 @@ export function useAllPeople() {
     } finally {
       setIsLoadingAllPeople(false)
     }
-  }, [isLoadingAllPeople, staticPeople])
+  }, [enabled, isLoadingAllPeople, staticPeople])
 
   const allPeople = useMemo(() => {
     // If static isn't loaded yet, this will be the remote list only.
