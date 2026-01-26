@@ -272,13 +272,15 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
   )
 }
 
-function Notes() {
+function Notes({
+  allPeople = [],
+  ensureAllPeopleLoaded = async () => {},
+  isLoadingAllPeople = false,
+  allPeopleError = ''
+}) {
   const [people, setPeople] = useState([])
   const [isLoadingPeople, setIsLoadingPeople] = useState(false)
   const [peopleError, setPeopleError] = useState('')
-  const [allPeople, setAllPeople] = useState([])
-  const [isLoadingAllPeople, setIsLoadingAllPeople] = useState(false)
-  const [allPeopleError, setAllPeopleError] = useState('')
   const [modalAttendeeFallback, setModalAttendeeFallback] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
@@ -329,32 +331,6 @@ function Notes() {
     }
     return Array.from(map.values())
   }, [allPeople, modalAttendeeFallback])
-
-  const ensureAllPeopleLoaded = async () => {
-    if (isLoadingAllPeople) return
-    if ((allPeople?.length ?? 0) > 0) return
-
-    setAllPeopleError('')
-    setIsLoadingAllPeople(true)
-    try {
-      const mod = await import('../data/people.json')
-      const raw = mod?.default ?? []
-      const list = (Array.isArray(raw) ? raw : [])
-        .map((p) => ({
-          hubspot_id: String(p?.hubspot_id ?? ''),
-          name: String(p?.name ?? ''),
-          email: p?.email ? String(p.email) : undefined
-        }))
-        .filter((p) => p.hubspot_id && p.name)
-        .sort((a, b) => a.name.localeCompare(b.name))
-      setAllPeople(list)
-    } catch (err) {
-      setAllPeople([])
-      setAllPeopleError(err?.message || 'Failed to load people list.')
-    } finally {
-      setIsLoadingAllPeople(false)
-    }
-  }
 
   useEffect(() => {
     let cancelled = false

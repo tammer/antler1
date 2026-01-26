@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import GetMeetingSummary from './pages/GetMeetingSummary'
 import MeetgeekManager from './pages/MeetgeekManager'
 import Notes from './pages/Notes'
+import { useAllPeople } from './lib/useAllPeople'
 import './App.css'
 
 const pageFromPath = (path) => {
@@ -15,6 +16,7 @@ const pageFromPath = (path) => {
 
 function App() {
   const [currentPage, setCurrentPage] = useState(() => pageFromPath(window.location.pathname))
+  const { allPeople, ensureAllPeopleLoaded, isLoadingAllPeople, allPeopleError } = useAllPeople()
 
   useEffect(() => {
     // Handle browser back/forward buttons
@@ -39,7 +41,14 @@ function App() {
         {currentPage === 'home' && <Home navigate={navigate} />}
         {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
         {currentPage === 'meetgeek-manager' && <MeetgeekManager />}
-        {currentPage === 'notes' && <Notes />}
+        {currentPage === 'notes' && (
+          <Notes
+            allPeople={allPeople}
+            ensureAllPeopleLoaded={ensureAllPeopleLoaded}
+            isLoadingAllPeople={isLoadingAllPeople}
+            allPeopleError={allPeopleError}
+          />
+        )}
       </div>
     </div>
   )
