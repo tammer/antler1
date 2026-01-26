@@ -390,7 +390,22 @@ function PrepForGemini2({ navigate }) {
 
   return (
     <div className="prep-for-gemini-2">
-      <h1>Meetgeek Manager</h1>
+      <h1 className="page-title">
+        <span>Meetgeek Manager</span>
+        <span className="title-tooltip">
+          <button
+            type="button"
+            className="title-tooltip-trigger"
+            aria-label="Meetgeek Manager help"
+            title="Here is some text (update me)"
+          >
+            ?
+          </button>
+          <span role="tooltip" className="title-tooltip-content">
+            Placeholder tooltip text (update me)
+          </span>
+        </span>
+      </h1>
       <form onSubmit={handleSubmit} className="gemini-form">
         <div className="form-group-with-highlights">
           <div className="form-group combobox-group">
