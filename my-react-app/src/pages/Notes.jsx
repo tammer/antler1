@@ -33,8 +33,8 @@ function Notes() {
       return [...prev, hubspotId]
     })
     setQuery('')
-    setIsOpen(true)
-    queueMicrotask(() => inputRef.current?.focus())
+    setIsOpen(false)
+    queueMicrotask(() => inputRef.current?.blur())
   }
 
   const removePerson = (hubspotId) => {
