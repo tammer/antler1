@@ -14,6 +14,14 @@ function Home({ navigate }) {
               Meetgeek Manager
             </a>
           </li>
+          <li>
+            <a href="/notes" onClick={(e) => {
+              e.preventDefault()
+              navigate('notes')
+            }}>
+              Notes
+            </a>
+          </li>
         </ul>
       </nav>
     </div>

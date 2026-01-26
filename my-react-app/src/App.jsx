@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import GetMeetingSummary from './pages/GetMeetingSummary'
 import MeetgeekManager from './pages/MeetgeekManager'
+import Notes from './pages/Notes'
 import './App.css'
 
 function App() {
@@ -15,6 +16,8 @@ function App() {
         setCurrentPage('get-meeting-summary')
       } else if (path === '/meetgeek-manager') {
         setCurrentPage('meetgeek-manager')
+      } else if (path === '/notes') {
+        setCurrentPage('notes')
       } else {
         setCurrentPage('home')
       }
@@ -26,6 +29,8 @@ function App() {
       setCurrentPage('get-meeting-summary')
     } else if (path === '/meetgeek-manager') {
       setCurrentPage('meetgeek-manager')
+    } else if (path === '/notes') {
+      setCurrentPage('notes')
     } else {
       setCurrentPage('home')
     }
@@ -45,6 +50,7 @@ function App() {
       {currentPage === 'home' && <Home navigate={navigate} />}
       {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
       {currentPage === 'meetgeek-manager' && <MeetgeekManager navigate={navigate} />}
+      {currentPage === 'notes' && <Notes />}
     </>
   )
 }
