@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './MeetgeekManager.css'
 
-function MeetgeekManager({ navigate }) {
+function MeetgeekManager() {
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState('')
   const [meetings, setMeetings] = useState([])
   const [loading, setLoading] = useState(false)
@@ -83,7 +83,7 @@ function MeetgeekManager({ navigate }) {
     if (typeof data === 'string') {
       try {
         jsonData = JSON.parse(data)
-      } catch (e) {
+      } catch {
         // If it's not JSON, return it as is
         return `<p>${escapeHtml(data)}</p>`
       }
@@ -170,7 +170,7 @@ function MeetgeekManager({ navigate }) {
       // Try to parse as JSON
       try {
         jsonData = JSON.parse(text)
-      } catch (e) {
+      } catch {
         // If not JSON, use the text as is
         jsonData = text
       }
@@ -381,11 +381,6 @@ function MeetgeekManager({ navigate }) {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleBack = (e) => {
-    e.preventDefault()
-    navigate('home')
   }
 
   return (

@@ -6,34 +6,20 @@ import MeetgeekManager from './pages/MeetgeekManager'
 import Notes from './pages/Notes'
 import './App.css'
 
+const pageFromPath = (path) => {
+  if (path === '/get-meeting-summary') return 'get-meeting-summary'
+  if (path === '/meetgeek-manager') return 'meetgeek-manager'
+  if (path === '/notes') return 'notes'
+  return 'home'
+}
+
 function App() {
-  const [currentPage, setCurrentPage] = useState('home')
+  const [currentPage, setCurrentPage] = useState(() => pageFromPath(window.location.pathname))
 
   useEffect(() => {
     // Handle browser back/forward buttons
     const handlePopState = () => {
-      const path = window.location.pathname
-      if (path === '/get-meeting-summary') {
-        setCurrentPage('get-meeting-summary')
-      } else if (path === '/meetgeek-manager') {
-        setCurrentPage('meetgeek-manager')
-      } else if (path === '/notes') {
-        setCurrentPage('notes')
-      } else {
-        setCurrentPage('home')
-      }
-    }
-
-    // Set initial page based on URL
-    const path = window.location.pathname
-    if (path === '/get-meeting-summary') {
-      setCurrentPage('get-meeting-summary')
-    } else if (path === '/meetgeek-manager') {
-      setCurrentPage('meetgeek-manager')
-    } else if (path === '/notes') {
-      setCurrentPage('notes')
-    } else {
-      setCurrentPage('home')
+      setCurrentPage(pageFromPath(window.location.pathname))
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -52,7 +38,7 @@ function App() {
       <div className="app-shell__content">
         {currentPage === 'home' && <Home navigate={navigate} />}
         {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
-        {currentPage === 'meetgeek-manager' && <MeetgeekManager navigate={navigate} />}
+        {currentPage === 'meetgeek-manager' && <MeetgeekManager />}
         {currentPage === 'notes' && <Notes />}
       </div>
     </div>
