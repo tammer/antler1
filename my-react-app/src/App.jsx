@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import Home from './pages/Home'
 import GetMeetingSummary from './pages/GetMeetingSummary'
-import PrepForGemini from './pages/PrepForGemini'
-import PrepForGemini2 from './pages/PrepForGemini2'
+import MeetgeekManager from './pages/MeetgeekManager'
 import './App.css'
 
 function App() {
@@ -14,8 +13,6 @@ function App() {
       const path = window.location.pathname
       if (path === '/get-meeting-summary') {
         setCurrentPage('get-meeting-summary')
-      } else if (path === '/prep-for-gemini') {
-        setCurrentPage('prep-for-gemini')
       } else if (path === '/meetgeek-manager') {
         setCurrentPage('meetgeek-manager')
       } else {
@@ -27,8 +24,6 @@ function App() {
     const path = window.location.pathname
     if (path === '/get-meeting-summary') {
       setCurrentPage('get-meeting-summary')
-    } else if (path === '/prep-for-gemini') {
-      setCurrentPage('prep-for-gemini')
     } else if (path === '/meetgeek-manager') {
       setCurrentPage('meetgeek-manager')
     } else {
@@ -49,8 +44,7 @@ function App() {
     <>
       {currentPage === 'home' && <Home navigate={navigate} />}
       {currentPage === 'get-meeting-summary' && <GetMeetingSummary />}
-      {currentPage === 'prep-for-gemini' && <PrepForGemini navigate={navigate} />}
-      {currentPage === 'meetgeek-manager' && <PrepForGemini2 navigate={navigate} />}
+      {currentPage === 'meetgeek-manager' && <MeetgeekManager navigate={navigate} />}
     </>
   )
 }
