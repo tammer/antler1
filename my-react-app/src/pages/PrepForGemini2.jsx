@@ -403,7 +403,7 @@ function PrepForGemini2({ navigate }) {
           </button>
           <span role="tooltip" className="title-tooltip-content">
             Search by meeting name, date or meeting ID.
-            For date search, us YYYY-MM-DD format.
+            For date search, use YYYY-MM-DD format.
 
           </span>
         </span>
