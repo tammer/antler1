@@ -132,10 +132,15 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
   const comboboxRef = useRef(null)
   const inputRef = useRef(null)
 
+  const peopleById = useMemo(() => {
+    return new Map((people ?? []).map((p) => [String(p.hubspot_id), p]))
+  }, [people])
+
   const selectedPeople = useMemo(() => {
-    const selectedSet = new Set(selectedIds)
-    return people.filter((p) => selectedSet.has(p.hubspot_id))
-  }, [people, selectedIds])
+    return (selectedIds ?? [])
+      .map((id) => peopleById.get(String(id)))
+      .filter(Boolean)
+  }, [peopleById, selectedIds])
 
   const filteredPeople = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -269,6 +274,10 @@ function Notes() {
   const [people, setPeople] = useState([])
   const [isLoadingPeople, setIsLoadingPeople] = useState(false)
   const [peopleError, setPeopleError] = useState('')
+  const [allPeople, setAllPeople] = useState([])
+  const [isLoadingAllPeople, setIsLoadingAllPeople] = useState(false)
+  const [allPeopleError, setAllPeopleError] = useState('')
+  const [modalAttendeeFallback, setModalAttendeeFallback] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [selectedHubspotIds, setSelectedHubspotIds] = useState([])
@@ -297,6 +306,53 @@ function Notes() {
   }, [people, filterHubspotId])
 
   const supabaseReady = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
+
+  const modalPeople = useMemo(() => {
+    // Modal should include full universe of people, but also keep any "unknown" attendees visible.
+    const map = new Map()
+    for (const p of allPeople ?? []) {
+      if (!p?.hubspot_id || !p?.name) continue
+      map.set(String(p.hubspot_id), {
+        hubspot_id: String(p.hubspot_id),
+        name: String(p.name),
+        email: p.email ? String(p.email) : undefined
+      })
+    }
+    for (const p of modalAttendeeFallback ?? []) {
+      if (!p?.hubspot_id || !p?.name) continue
+      const key = String(p.hubspot_id)
+      if (!map.has(key)) {
+        map.set(key, { hubspot_id: key, name: String(p.name) })
+      }
+    }
+    return Array.from(map.values())
+  }, [allPeople, modalAttendeeFallback])
+
+  const ensureAllPeopleLoaded = async () => {
+    if (isLoadingAllPeople) return
+    if ((allPeople?.length ?? 0) > 0) return
+
+    setAllPeopleError('')
+    setIsLoadingAllPeople(true)
+    try {
+      const mod = await import('../data/people.json')
+      const raw = mod?.default ?? []
+      const list = (Array.isArray(raw) ? raw : [])
+        .map((p) => ({
+          hubspot_id: String(p?.hubspot_id ?? ''),
+          name: String(p?.name ?? ''),
+          email: p?.email ? String(p.email) : undefined
+        }))
+        .filter((p) => p.hubspot_id && p.name)
+        .sort((a, b) => a.name.localeCompare(b.name))
+      setAllPeople(list)
+    } catch (err) {
+      setAllPeople([])
+      setAllPeopleError(err?.message || 'Failed to load people list.')
+    } finally {
+      setIsLoadingAllPeople(false)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -518,6 +574,7 @@ function Notes() {
     setIsSaving(false)
     setSaveError('')
     setIsLoadingModalAttendees(false)
+    setModalAttendeeFallback([])
   }
 
   useEffect(() => {
@@ -544,6 +601,8 @@ function Notes() {
     setEditingNoteId(null)
     setNoteText('')
     setSelectedHubspotIds([])
+    setModalAttendeeFallback([])
+    ensureAllPeopleLoaded()
     setIsModalOpen(true)
   }
 
@@ -553,7 +612,7 @@ function Notes() {
     for (const tableName of attendeesTableCandidates) {
       const { data, error } = await supabase
         .from(tableName)
-        .select('hubspot_id')
+        .select('hubspot_id,name')
         .eq('note_id', noteId)
       if (!error) return data ?? []
       lastError = error
@@ -566,6 +625,8 @@ function Notes() {
     setEditingNoteId(noteRow.id)
     setNoteText(noteRow.note ?? '')
     setSelectedHubspotIds([])
+    setModalAttendeeFallback([])
+    ensureAllPeopleLoaded()
     setIsModalOpen(true)
 
     if (!supabaseReady) return
@@ -575,6 +636,11 @@ function Notes() {
       const rows = await loadAttendeesForNote(noteRow.id)
       const ids = Array.from(new Set((rows ?? []).map((r) => String(r.hubspot_id))))
       setSelectedHubspotIds(ids)
+      setModalAttendeeFallback(
+        (rows ?? [])
+          .map((r) => ({ hubspot_id: String(r?.hubspot_id ?? ''), name: String(r?.name ?? '') }))
+          .filter((p) => p.hubspot_id && p.name)
+      )
     } catch (err) {
       // Not fatal; user can still edit the note text.
       console.error('Failed to load attendees for note:', err)
@@ -670,11 +736,15 @@ function Notes() {
       return
     }
 
-    const peopleById = new Map(people.map((p) => [String(p.hubspot_id), p]))
+    const peopleById = new Map(
+      [...(modalPeople ?? []), ...(people ?? [])].map((p) => [String(p.hubspot_id), p])
+    )
     const attendees = selectedHubspotIds
-      .map((id) => peopleById.get(String(id)))
-      .filter(Boolean)
-      .map((p) => ({ hubspot_id: String(p.hubspot_id), name: p.name }))
+      .map((id) => {
+        const p = peopleById.get(String(id))
+        if (p?.name) return { hubspot_id: String(id), name: String(p.name) }
+        return { hubspot_id: String(id), name: String(id) }
+      })
 
     const functionName =
       import.meta.env.VITE_SUPABASE_CREATE_NOTE_FUNCTION ?? 'create_note_with_attendees'
@@ -889,12 +959,22 @@ function Notes() {
               </div>
 
               <PeopleMultiSelect
-                people={people}
+                people={modalPeople}
                 selectedIds={selectedHubspotIds}
                 onChange={setSelectedHubspotIds}
                 inputId="new-note-people-input"
                 label="Associate with people"
               />
+
+              {allPeopleError && (
+                <div className="message error">
+                  {allPeopleError}
+                </div>
+              )}
+
+              {isLoadingAllPeople && (
+                <div className="message info">Loading people list...</div>
+              )}
 
               {isLoadingModalAttendees && (
                 <div className="message info">Loading associated people...</div>
