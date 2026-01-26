@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './MeetgeekManager.css'
-import peopleData from '../data/people.json'
 import { supabase } from '../lib/supabaseClient'
 
 function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
@@ -17,7 +16,7 @@ function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
     const q = query.trim().toLowerCase()
     if (!q) return people
     return people.filter((p) => {
-      const haystack = `${p.name} ${p.email}`.toLowerCase()
+      const haystack = `${p.name ?? ''} ${p.email ?? ''}`.toLowerCase()
       return haystack.includes(q)
     })
   }, [people, query])
@@ -110,7 +109,7 @@ function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
                     <div className="notes-person-option">
                       <span className="notes-person-option-main">
                         <span className="notes-person-option-name">{p.name}</span>
-                        <span className="notes-person-option-email">{p.email}</span>
+                        {!!p.email && <span className="notes-person-option-email">{p.email}</span>}
                       </span>
                       <span className="notes-person-option-check" aria-hidden="true">
                         {isSelected ? '✓' : ''}
@@ -142,7 +141,7 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
     const q = query.trim().toLowerCase()
     if (!q) return people
     return people.filter((p) => {
-      const haystack = `${p.name} ${p.email}`.toLowerCase()
+      const haystack = `${p.name ?? ''} ${p.email ?? ''}`.toLowerCase()
       return haystack.includes(q)
     })
   }, [people, query])
@@ -249,7 +248,7 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
                     <div className="notes-person-option">
                       <span className="notes-person-option-main">
                         <span className="notes-person-option-name">{p.name}</span>
-                        <span className="notes-person-option-email">{p.email}</span>
+                        {!!p.email && <span className="notes-person-option-email">{p.email}</span>}
                       </span>
                       <span className="notes-person-option-check" aria-hidden="true">
                         {isSelected ? '✓' : ''}
@@ -267,7 +266,9 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
 }
 
 function Notes() {
-  const people = peopleData
+  const [people, setPeople] = useState([])
+  const [isLoadingPeople, setIsLoadingPeople] = useState(false)
+  const [peopleError, setPeopleError] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [noteText, setNoteText] = useState('')
   const [selectedHubspotIds, setSelectedHubspotIds] = useState([])
@@ -296,6 +297,70 @@ function Notes() {
   }, [people, filterHubspotId])
 
   const supabaseReady = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadPeople = async () => {
+      setPeopleError('')
+
+      if (!supabaseReady) {
+        setPeople([])
+        setIsLoadingPeople(false)
+        return
+      }
+
+      setIsLoadingPeople(true)
+      try {
+        const attendeesTableCandidates = ['attendees', 'Attendees']
+        let rows = null
+        let lastError = null
+
+        for (const tableName of attendeesTableCandidates) {
+          const { data, error } = await supabase
+            .from(tableName)
+            .select('hubspot_id,name')
+
+          if (!error) {
+            rows = data ?? []
+            lastError = null
+            break
+          }
+          lastError = error
+        }
+
+        if (lastError) throw lastError
+
+        const map = new Map()
+        for (const r of rows ?? []) {
+          const id = r?.hubspot_id
+          const name = r?.name
+          if (!id || !name) continue
+          const key = String(id)
+          if (!map.has(key)) map.set(key, String(name))
+        }
+
+        const list = Array.from(map.entries())
+          .map(([hubspot_id, name]) => ({ hubspot_id, name }))
+          .sort((a, b) => a.name.localeCompare(b.name))
+
+        if (!cancelled) setPeople(list)
+      } catch (err) {
+        if (!cancelled) {
+          setPeople([])
+          setPeopleError(err?.message || 'Failed to load attendees.')
+        }
+      } finally {
+        if (!cancelled) setIsLoadingPeople(false)
+      }
+    }
+
+    loadPeople()
+
+    return () => {
+      cancelled = true
+    }
+  }, [supabaseReady, notesReloadKey])
 
   useEffect(() => {
     let cancelled = false
@@ -605,9 +670,11 @@ function Notes() {
       return
     }
 
-    const attendees = people
-      .filter((p) => selectedHubspotIds.includes(p.hubspot_id))
-      .map((p) => ({ hubspot_id: p.hubspot_id, name: p.name }))
+    const peopleById = new Map(people.map((p) => [String(p.hubspot_id), p]))
+    const attendees = selectedHubspotIds
+      .map((id) => peopleById.get(String(id)))
+      .filter(Boolean)
+      .map((p) => ({ hubspot_id: String(p.hubspot_id), name: p.name }))
 
     const functionName =
       import.meta.env.VITE_SUPABASE_CREATE_NOTE_FUNCTION ?? 'create_note_with_attendees'
@@ -707,6 +774,8 @@ function Notes() {
       </div>
 
       <div className="notes-filter">
+        {peopleError && <div className="message error">{peopleError}</div>}
+        {isLoadingPeople && <div className="message info">Loading attendees...</div>}
         <PersonSingleSelect
           people={people}
           selectedId={filterHubspotId}
