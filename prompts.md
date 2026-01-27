@@ -66,3 +66,5 @@ Section Heading: Next Steps
 what next steps were discussed 2 or 3 sentences max.
 
 format your response in markdown
+
+Here is the transcript:
