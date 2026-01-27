@@ -348,6 +348,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
+  max-width: 900px;
 }
 
 .notes-page-title-row h1.page-title {
@@ -411,6 +413,8 @@
 
 .notes-filter {
   margin-top: 1rem;
+  width: 100%;
+  max-width: 900px;
 }
 
 .notes-subtitle {
@@ -440,7 +444,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  width: 900px;
+  width: 100%;
+  max-width: 900px;
 }
 
 .notes-card {
@@ -1102,6 +1107,11 @@
   .meetgeek-manager h1 {
     font-size: 1.5rem;
     margin-bottom: 1.5rem;
+  }
+
+  .notes-page-title-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .highlights-row {
