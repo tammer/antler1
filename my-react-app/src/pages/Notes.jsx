@@ -853,11 +853,6 @@ function Notes({
           label="Select a meeting attendee"
         />
 
-        {filterPerson && (
-          <div className="notes-subtitle">
-            Showing notes for <strong>{filterPerson.name}</strong>
-          </div>
-        )}
         {!filterPerson && (
           <div className="notes-subtitle notes-subtitle-recent">
             Recent Meetings
