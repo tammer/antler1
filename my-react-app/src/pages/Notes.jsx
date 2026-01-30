@@ -136,11 +136,19 @@ function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
   )
 }
 
-function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
+function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label, inputRef: inputRefProp }) {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const comboboxRef = useRef(null)
   const inputRef = useRef(null)
+
+  const setInputRef = (el) => {
+    inputRef.current = el
+    if (inputRefProp) {
+      if (typeof inputRefProp === 'function') inputRefProp(el)
+      else inputRefProp.current = el
+    }
+  }
 
   const peopleById = useMemo(() => {
     return new Map((people ?? []).map((p) => [String(p.hubspot_id), p]))
@@ -224,7 +232,7 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label }) {
           <input
             id={inputId}
             type="text"
-            ref={inputRef}
+            ref={setInputRef}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -305,6 +313,7 @@ function Notes({
   const [notesReloadKey, setNotesReloadKey] = useState(0)
   const [isLoadingModalAttendees, setIsLoadingModalAttendees] = useState(false)
   const [deletingNoteId, setDeletingNoteId] = useState(null)
+  const meetingPeopleInputRef = useRef(null)
 
   const formatNoteDate = (createdAt) => {
     if (!createdAt) return ''
@@ -716,6 +725,13 @@ function Notes({
       document.body.style.overflow = previousOverflow
     }
   }, [isModalOpen])
+
+  // When opening the modal for a new note, focus the "who is in the meeting" selector
+  useEffect(() => {
+    if (!isModalOpen || editingNoteId) return
+    const t = setTimeout(() => meetingPeopleInputRef.current?.focus(), 0)
+    return () => clearTimeout(t)
+  }, [isModalOpen, editingNoteId])
 
   const openNewModal = () => {
     setSaveError('')
@@ -1177,6 +1193,7 @@ function Notes({
                 onChange={setSelectedHubspotIds}
                 inputId="new-note-people-input"
                 label="Associate with people"
+                inputRef={meetingPeopleInputRef}
               />
 
               {allPeopleError && (
