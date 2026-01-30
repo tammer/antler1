@@ -11,6 +11,30 @@ function NavBar({ navigate, isAuthed, userEmail, onLogout }) {
       >
         Home
       </a>
+      {isAuthed && (
+        <>
+          <a
+            className="navbar__link"
+            href="/meetgeek-manager"
+            onClick={(e) => {
+              e.preventDefault()
+              navigate('meetgeek-manager')
+            }}
+          >
+            Meetgeek Manager
+          </a>
+          <a
+            className="navbar__link"
+            href="/notes"
+            onClick={(e) => {
+              e.preventDefault()
+              navigate('notes')
+            }}
+          >
+            Notes
+          </a>
+        </>
+      )}
 
       <div className="navbar__spacer" />
 

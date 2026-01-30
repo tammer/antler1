@@ -160,6 +160,16 @@
   text-decoration: underline;
 }
 
+.navbar__link {
+  color: inherit;
+  font-weight: 600;
+  margin-left: 1.25rem;
+}
+
+.navbar__link:hover {
+  text-decoration: underline;
+}
+
 .navbar__spacer {
   flex: 1;
 }
