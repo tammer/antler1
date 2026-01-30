@@ -297,6 +297,7 @@ function Notes({
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [filterHubspotId, setFilterHubspotId] = useState('')
+  const [notesViewMode, setNotesViewMode] = useState('recent') // 'recent' | 'untagged' | 'by_attendee'
   const [notes, setNotes] = useState([])
   const [attendeesByNoteId, setAttendeesByNoteId] = useState({})
   const [isLoadingNotes, setIsLoadingNotes] = useState(false)
@@ -478,17 +479,64 @@ function Notes({
         let noteIds = []
         let noteRows = []
 
-        if (filterHubspotId) {
-          // 1) find note_ids from attendees for this hubspot_id
+        // By-attendee view: show no notes until someone is selected
+        if (notesViewMode === 'by_attendee' && !filterHubspotId) {
+          if (!cancelled) {
+            setNotes([])
+            setAttendeesByNoteId({})
+          }
+          return
+        }
+
+        // Untagged view: notes that have no people associated
+        if (notesViewMode === 'untagged') {
+          let noteIdsWithAttendees = new Set()
+          let lastAttendeeError = null
+          for (const tableName of attendeesTableCandidates) {
+            const { data, error } = await supabase
+              .from(tableName)
+              .select('note_id')
+            if (!error) {
+              ;(data ?? []).forEach((r) => {
+                if (r?.note_id) noteIdsWithAttendees.add(r.note_id)
+              })
+              lastAttendeeError = null
+              break
+            }
+            lastAttendeeError = error
+          }
+          if (lastAttendeeError) {
+            console.error('Failed to load note IDs with attendees:', lastAttendeeError)
+          }
+
+          let lastNotesError = null
+          for (const tableName of notesTableCandidates) {
+            const { data, error } = await supabase
+              .from(tableName)
+              .select('id,note,created_at')
+              .order('created_at', { ascending: false })
+              .limit(200)
+            if (!error) {
+              const allRows = data ?? []
+              noteRows = noteIdsWithAttendees.size === 0
+                ? allRows
+                : allRows.filter((r) => !noteIdsWithAttendees.has(r.id))
+              lastNotesError = null
+              break
+            }
+            lastNotesError = error
+          }
+          if (lastNotesError) throw lastNotesError
+          noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
+        } else if (notesViewMode === 'by_attendee' && filterHubspotId) {
+          // By-attendee view with selection: notes for this person
           let attendeeRows = null
           let lastAttendeeError = null
-
           for (const tableName of attendeesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
               .select('note_id')
               .eq('hubspot_id', filterHubspotId)
-
             if (!error) {
               attendeeRows = data ?? []
               lastAttendeeError = null
@@ -496,9 +544,7 @@ function Notes({
             }
             lastAttendeeError = error
           }
-
           if (lastAttendeeError) throw lastAttendeeError
-
           noteIds = Array.from(new Set((attendeeRows ?? []).map((r) => r.note_id))).filter(Boolean)
           if (noteIds.length === 0) {
             if (!cancelled) {
@@ -507,8 +553,6 @@ function Notes({
             }
             return
           }
-
-          // 2) fetch notes by id
           let lastNotesError = null
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
@@ -516,7 +560,6 @@ function Notes({
               .select('id,note,created_at')
               .in('id', noteIds)
               .order('created_at', { ascending: false })
-
             if (!error) {
               noteRows = data ?? []
               lastNotesError = null
@@ -526,25 +569,64 @@ function Notes({
           }
           if (lastNotesError) throw lastNotesError
         } else {
-          // No filter: show 5 most recent notes
-          let lastNotesError = null
-          for (const tableName of notesTableCandidates) {
-            const { data, error } = await supabase
-              .from(tableName)
-              .select('id,note,created_at')
-              .order('created_at', { ascending: false })
-              .limit(5)
-
-            if (!error) {
-              noteRows = data ?? []
-              lastNotesError = null
-              break
+          // Recent view (current behavior)
+          if (filterHubspotId) {
+            let attendeeRows = null
+            let lastAttendeeError = null
+            for (const tableName of attendeesTableCandidates) {
+              const { data, error } = await supabase
+                .from(tableName)
+                .select('note_id')
+                .eq('hubspot_id', filterHubspotId)
+              if (!error) {
+                attendeeRows = data ?? []
+                lastAttendeeError = null
+                break
+              }
+              lastAttendeeError = error
             }
-            lastNotesError = error
+            if (lastAttendeeError) throw lastAttendeeError
+            noteIds = Array.from(new Set((attendeeRows ?? []).map((r) => r.note_id))).filter(Boolean)
+            if (noteIds.length === 0) {
+              if (!cancelled) {
+                setNotes([])
+                setAttendeesByNoteId({})
+              }
+              return
+            }
+            let lastNotesError = null
+            for (const tableName of notesTableCandidates) {
+              const { data, error } = await supabase
+                .from(tableName)
+                .select('id,note,created_at')
+                .in('id', noteIds)
+                .order('created_at', { ascending: false })
+              if (!error) {
+                noteRows = data ?? []
+                lastNotesError = null
+                break
+              }
+              lastNotesError = error
+            }
+            if (lastNotesError) throw lastNotesError
+          } else {
+            let lastNotesError = null
+            for (const tableName of notesTableCandidates) {
+              const { data, error } = await supabase
+                .from(tableName)
+                .select('id,note,created_at')
+                .order('created_at', { ascending: false })
+                .limit(5)
+              if (!error) {
+                noteRows = data ?? []
+                lastNotesError = null
+                break
+              }
+              lastNotesError = error
+            }
+            if (lastNotesError) throw lastNotesError
+            noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
           }
-          if (lastNotesError) throw lastNotesError
-
-          noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
         }
 
         // Fetch attendees for the loaded notes (so we can display everyone associated)
@@ -611,7 +693,7 @@ function Notes({
     return () => {
       cancelled = true
     }
-  }, [filterHubspotId, supabaseReady, notesReloadKey])
+  }, [filterHubspotId, notesViewMode, supabaseReady, notesReloadKey])
 
   const closeModal = () => {
     setIsModalOpen(false)
@@ -890,20 +972,64 @@ function Notes({
         </button>
       </div>
 
+      <div className="notes-view-tabs">
+        <button
+          type="button"
+          className={`notes-view-tab${notesViewMode === 'recent' ? ' active' : ''}`}
+          onClick={() => {
+            setNotesViewMode('recent')
+          }}
+        >
+          Recent
+        </button>
+        <button
+          type="button"
+          className={`notes-view-tab${notesViewMode === 'untagged' ? ' active' : ''}`}
+          onClick={() => {
+            setNotesViewMode('untagged')
+            setFilterHubspotId('')
+          }}
+        >
+          Untagged notes
+        </button>
+        <button
+          type="button"
+          className={`notes-view-tab${notesViewMode === 'by_attendee' ? ' active' : ''}`}
+          onClick={() => {
+            setNotesViewMode('by_attendee')
+            setFilterHubspotId('')
+          }}
+        >
+          By attendee
+        </button>
+      </div>
+
       <div className="notes-filter">
         {peopleError && <div className="message error">{peopleError}</div>}
         {isLoadingPeople && <div className="message info">Loading attendees...</div>}
-        <PersonSingleSelect
-          people={people}
-          selectedId={filterHubspotId}
-          onChange={setFilterHubspotId}
-          inputId="notes-filter-person"
-          label="Select a meeting attendee"
-        />
+        {(notesViewMode === 'recent' || notesViewMode === 'by_attendee') && (
+          <PersonSingleSelect
+            people={people}
+            selectedId={filterHubspotId}
+            onChange={setFilterHubspotId}
+            inputId="notes-filter-person"
+            label="Select a meeting attendee"
+          />
+        )}
 
-        {!filterPerson && (
+        {notesViewMode === 'recent' && !filterPerson && (
           <div className="notes-subtitle notes-subtitle-recent">
             Recent Meetings
+          </div>
+        )}
+        {notesViewMode === 'untagged' && (
+          <div className="notes-subtitle notes-subtitle-untagged">
+            Untagged notes
+          </div>
+        )}
+        {notesViewMode === 'by_attendee' && !filterHubspotId && (
+          <div className="notes-subtitle notes-subtitle-by-attendee">
+            Select an attendee to see their notes
           </div>
         )}
 
@@ -915,11 +1041,17 @@ function Notes({
           <div className="message error">{notesError}</div>
         )}
 
+        {!isLoadingNotes && !notesError && notesViewMode === 'by_attendee' && !filterHubspotId && (
+          <div className="notes-empty">Select someone in the menu above to view their notes.</div>
+        )}
         {!isLoadingNotes && !notesError && filterHubspotId && notes.length === 0 && (
           <div className="notes-empty">No notes found for this attendee.</div>
         )}
-        {!isLoadingNotes && !notesError && !filterHubspotId && notes.length === 0 && (
+        {!isLoadingNotes && !notesError && notesViewMode === 'recent' && !filterHubspotId && notes.length === 0 && (
           <div className="notes-empty">No notes yet.</div>
+        )}
+        {!isLoadingNotes && !notesError && notesViewMode === 'untagged' && notes.length === 0 && (
+          <div className="notes-empty">No untagged notes.</div>
         )}
 
         {!isLoadingNotes && !notesError && notes.length > 0 && (
