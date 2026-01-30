@@ -487,6 +487,62 @@
   margin-bottom: 0;
 }
 
+.notes-card-date-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notes-card-date-display {
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.notes-card-date-display:hover {
+  color: #0969da;
+}
+
+.notes-card-date-input {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #24292f;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.notes-card-date-input:hover {
+  border-color: #8c959f;
+}
+
+.notes-card-date-input:focus {
+  outline: none;
+  border-color: #0969da;
+  box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
+}
+
+.notes-card-date-input:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.notes-card-date-saving {
+  font-size: 0.8125rem;
+  color: #57606a;
+  font-weight: 400;
+}
+
 .notes-card-actions {
   display: inline-flex;
   align-items: center;

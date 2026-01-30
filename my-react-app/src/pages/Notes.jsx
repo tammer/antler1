@@ -309,7 +309,55 @@ function Notes({
     if (!createdAt) return ''
     const d = new Date(createdAt)
     if (Number.isNaN(d.getTime())) return ''
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: '2-digit' })
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const formatNoteDateForInput = (createdAt) => {
+    if (!createdAt) return ''
+    const d = new Date(createdAt)
+    if (Number.isNaN(d.getTime())) return ''
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  const [savingDateId, setSavingDateId] = useState(null)
+  const [editingDateId, setEditingDateId] = useState(null)
+
+  const handleDateChange = async (noteId, dateString) => {
+    if (!dateString || !noteId) return
+    const isoString = `${dateString}T12:00:00.000Z`
+    if (!supabaseReady) {
+      setNotesError('Missing Supabase config.')
+      return
+    }
+    setSavingDateId(noteId)
+    setNotesError('')
+    try {
+      const notesTableCandidates = ['notes', 'Notes']
+      let lastNotesError = null
+      for (const tableName of notesTableCandidates) {
+        const { error } = await supabase
+          .from(tableName)
+          .update({ created_at: isoString })
+          .eq('id', noteId)
+        if (!error) {
+          lastNotesError = null
+          break
+        }
+        lastNotesError = error
+      }
+      if (lastNotesError) throw lastNotesError
+      setNotes((prev) =>
+        prev.map((n) => (n.id === noteId ? { ...n, created_at: isoString } : n))
+      )
+      setEditingDateId(null)
+    } catch (err) {
+      setNotesError(err?.message || 'Failed to update date.')
+    } finally {
+      setSavingDateId(null)
+    }
   }
 
   const isSingleDigitHubspotId = (hubspotId) => {
@@ -880,7 +928,36 @@ function Notes({
               <div key={n.id} className="notes-card">
                 <div className="notes-card-header">
                   <div className="notes-card-top">
-                    <div className="notes-card-meta">{formatNoteDate(n.created_at)}</div>
+                    <div className="notes-card-meta notes-card-date-wrapper">
+                      {editingDateId === n.id ? (
+                        <>
+                          <input
+                            type="date"
+                            className="notes-card-date-input"
+                            value={formatNoteDateForInput(n.created_at)}
+                            onChange={(e) => handleDateChange(n.id, e.target.value)}
+                            onBlur={() => setEditingDateId(null)}
+                            disabled={savingDateId === n.id}
+                            autoFocus
+                            aria-label="Edit note date"
+                          />
+                          {savingDateId === n.id && (
+                            <span className="notes-card-date-saving" aria-hidden="true">
+                              Saving...
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          className="notes-card-date-display"
+                          onClick={() => setEditingDateId(n.id)}
+                          title="Click to change date"
+                        >
+                          {formatNoteDate(n.created_at)}
+                        </button>
+                      )}
+                    </div>
                     {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
                       <div className="notes-attendees notes-attendees-inline">
                         {attendeesByNoteId[n.id].map((a) => {
