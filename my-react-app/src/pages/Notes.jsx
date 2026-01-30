@@ -1176,6 +1176,15 @@ function Notes({
                 handleSave()
               }}
             >
+              <PeopleMultiSelect
+                people={modalPeople}
+                selectedIds={selectedHubspotIds}
+                onChange={setSelectedHubspotIds}
+                inputId="new-note-people-input"
+                label="Who was in the meeting?"
+                inputRef={meetingPeopleInputRef}
+              />
+
               <div className="form-group">
                 <label htmlFor="notes-textarea">Note</label>
                 <textarea
@@ -1186,15 +1195,6 @@ function Notes({
                   disabled={isSaving}
                 />
               </div>
-
-              <PeopleMultiSelect
-                people={modalPeople}
-                selectedIds={selectedHubspotIds}
-                onChange={setSelectedHubspotIds}
-                inputId="new-note-people-input"
-                label="Associate with people"
-                inputRef={meetingPeopleInputRef}
-              />
 
               {allPeopleError && (
                 <div className="message error">

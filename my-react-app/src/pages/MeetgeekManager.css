@@ -320,17 +320,25 @@
 
 .notes-person-option-main {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
 }
 
 .notes-person-option-name {
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .notes-person-option-email {
   font-size: 0.8125rem;
   color: #57606a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .combobox-dropdown li.selected .notes-person-option-email {
