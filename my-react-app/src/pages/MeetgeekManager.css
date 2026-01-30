@@ -452,29 +452,30 @@
 }
 
 .notes-view-tab {
-  padding: 0.5rem 1rem;
-  font-size: 0.9rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   border: 1px solid #d1d5da;
   border-radius: 6px;
   background: #f6f8fa;
-  color: #24292f;
+  color: #57606a;
   cursor: pointer;
 }
 
 .notes-view-tab:hover {
   background: #eaeef2;
+  color: #24292f;
 }
 
 .notes-view-tab.active {
-  background: #0969da;
-  border-color: #0969da;
-  color: #fff;
+  background: #eaeef2;
+  border-color: #afb8c1;
+  color: #24292f;
 }
 
 .notes-view-tab.active:hover {
-  background: #0550ae;
-  border-color: #0550ae;
+  background: #d0d7de;
+  border-color: #afb8c1;
 }
 
 .notes-filter {
