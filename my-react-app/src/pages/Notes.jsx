@@ -1027,11 +1027,6 @@ function Notes({
             Untagged notes
           </div>
         )}
-        {notesViewMode === 'by_attendee' && !filterHubspotId && (
-          <div className="notes-subtitle notes-subtitle-by-attendee">
-            Select an attendee to see their notes
-          </div>
-        )}
 
         {isLoadingNotes && (
           <div className="message info">Loading notes...</div>
