@@ -952,18 +952,12 @@ function Notes({
       </div>
 
       {isModalOpen && (
-        <div
-          className="notes-modal-overlay"
-          onMouseDown={() => {
-            if (!isSaving) closeModal()
-          }}
-        >
+        <div className="notes-modal-overlay">
           <div
             className="notes-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="new-note-title"
-            onMouseDown={(e) => e.stopPropagation()}
           >
             <h2 id="new-note-title">{editingNoteId ? 'Edit Note' : 'New Note'}</h2>
 
