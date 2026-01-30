@@ -709,21 +709,13 @@ function Notes({
   useEffect(() => {
     if (!isModalOpen) return
 
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        if (!isSaving) closeModal()
-      }
-    }
-
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
 
-    document.addEventListener('keydown', handleKeyDown)
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = previousOverflow
     }
-  }, [isModalOpen, isSaving])
+  }, [isModalOpen])
 
   const openNewModal = () => {
     setSaveError('')
