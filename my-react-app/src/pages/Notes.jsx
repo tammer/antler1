@@ -973,7 +973,7 @@ function Notes({
         </h1>
         <button
           type="button"
-          className="watch-video-button"
+          className="notes-new-note-button"
           onClick={openNewModal}
         >
           New Note
