@@ -297,7 +297,7 @@ function Notes({
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [filterHubspotId, setFilterHubspotId] = useState('')
-  const [notesViewMode, setNotesViewMode] = useState('recent') // 'recent' | 'untagged' | 'by_attendee'
+  const [notesViewMode, setNotesViewMode] = useState('by_attendee') // 'recent' | 'untagged' | 'by_attendee'
   const [notes, setNotes] = useState([])
   const [attendeesByNoteId, setAttendeesByNoteId] = useState({})
   const [isLoadingNotes, setIsLoadingNotes] = useState(false)
@@ -975,6 +975,16 @@ function Notes({
       <div className="notes-view-tabs">
         <button
           type="button"
+          className={`notes-view-tab${notesViewMode === 'by_attendee' ? ' active' : ''}`}
+          onClick={() => {
+            setNotesViewMode('by_attendee')
+            setFilterHubspotId('')
+          }}
+        >
+          By attendee
+        </button>
+        <button
+          type="button"
           className={`notes-view-tab${notesViewMode === 'recent' ? ' active' : ''}`}
           onClick={() => {
             setNotesViewMode('recent')
@@ -991,16 +1001,6 @@ function Notes({
           }}
         >
           Untagged notes
-        </button>
-        <button
-          type="button"
-          className={`notes-view-tab${notesViewMode === 'by_attendee' ? ' active' : ''}`}
-          onClick={() => {
-            setNotesViewMode('by_attendee')
-            setFilterHubspotId('')
-          }}
-        >
-          By attendee
         </button>
       </div>
 
