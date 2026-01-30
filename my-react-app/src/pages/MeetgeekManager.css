@@ -746,6 +746,12 @@
   text-decoration: underline;
 }
 
+.notes-card hr {
+  border: none;
+  border-top: 0px solid red;
+  margin: 0.75rem 0;
+}
+
 .notes-card-attendees {
   margin-top: 0.75rem;
   display: flex;
