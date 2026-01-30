@@ -1035,10 +1035,6 @@ function Notes({
         {notesError && (
           <div className="message error">{notesError}</div>
         )}
-
-        {!isLoadingNotes && !notesError && notesViewMode === 'by_attendee' && !filterHubspotId && (
-          <div className="notes-empty">Select someone in the menu above to view their notes.</div>
-        )}
         {!isLoadingNotes && !notesError && filterHubspotId && notes.length === 0 && (
           <div className="notes-empty">No notes found for this attendee.</div>
         )}
