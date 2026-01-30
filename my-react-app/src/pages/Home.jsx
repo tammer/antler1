@@ -3,7 +3,7 @@ import './Home.css'
 function Home({ navigate }) {
   return (
     <div className="home">
-      <h1>Welcome</h1>
+      <h1>Dashboard</h1>
       <nav className="home-nav">
         <ul>
           <li>
