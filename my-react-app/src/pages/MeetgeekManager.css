@@ -468,14 +468,15 @@
 }
 
 .notes-view-tab.active {
-  background: #eaeef2;
-  border-color: #afb8c1;
-  color: #24292f;
+  background: #e8f0fe;
+  border-color: #9cb8e8;
+  color: #0969da;
 }
 
 .notes-view-tab.active:hover {
-  background: #d0d7de;
-  border-color: #afb8c1;
+  background: #d6e6fc;
+  border-color: #9cb8e8;
+  color: #0550ae;
 }
 
 .notes-filter {
