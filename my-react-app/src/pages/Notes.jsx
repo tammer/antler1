@@ -1229,17 +1229,6 @@ function Notes({
           />
         )}
 
-        {notesViewMode === 'recent' && !filterPerson && (
-          <div className="notes-subtitle notes-subtitle-recent">
-            Recent Meetings
-          </div>
-        )}
-        {notesViewMode === 'untagged' && (
-          <div className="notes-subtitle notes-subtitle-untagged">
-            Untagged notes
-          </div>
-        )}
-
         {isLoadingNotes && (
           <div className="message info">Loading notes...</div>
         )}
