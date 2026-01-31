@@ -52,6 +52,34 @@ function NoteCard({
   onDelete,
   onFollowup
 }) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [menuOpen])
+
+  const handleEdit = () => {
+    setMenuOpen(false)
+    onEdit(note)
+  }
+  const handleFollowup = () => {
+    setMenuOpen(false)
+    onFollowup?.(note, attendees)
+  }
+  const handleDelete = () => {
+    setMenuOpen(false)
+    onDelete(note)
+  }
+
   return (
     <div className="notes-card">
       <div className="notes-card-header">
@@ -119,31 +147,36 @@ function NoteCard({
             </div>
           )}
         </div>
-        <div className="notes-card-actions">
+        <div className="notes-card-menu" ref={menuRef}>
           <button
             type="button"
-            className="notes-edit-button"
-            onClick={() => onEdit(note)}
+            className="notes-card-menu-trigger"
+            onClick={() => setMenuOpen((o) => !o)}
             disabled={isDeleting}
+            aria-expanded={menuOpen}
+            aria-haspopup="true"
+            aria-label="Note actions"
           >
-            Edit
+            <span className="notes-card-menu-dots" aria-hidden="true">⋯</span>
           </button>
-          <button
-            type="button"
-            className="notes-followup-button"
-            onClick={() => onFollowup?.(note, attendees)}
-            disabled={isDeleting}
-          >
-            Followup
-          </button>
-          <button
-            type="button"
-            className="notes-delete-button"
-            onClick={() => onDelete(note)}
-            disabled={isDeleting}
-          >
-            {isDeleting ? 'Deleting...' : 'Delete'}
-          </button>
+          {menuOpen && (
+            <div className="notes-card-menu-dropdown">
+              <button type="button" className="notes-card-menu-item" onClick={handleEdit}>
+                Edit
+              </button>
+              <button type="button" className="notes-card-menu-item" onClick={handleFollowup}>
+                Follow up
+              </button>
+              <button
+                type="button"
+                className="notes-card-menu-item notes-card-menu-item--danger"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="notes-card-markdown">

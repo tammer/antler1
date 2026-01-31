@@ -518,9 +518,9 @@
 
 .notes-card {
   border: 1px solid #d1d5da;
-  border-radius: 8px;
+  border-radius: 6px;
   background: #ffffff;
-  padding: 0.875rem 1rem;
+  overflow: hidden;
 }
 
 .notes-card-meta {
@@ -535,8 +535,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #eaeef2;
+  padding: 0.75rem 1rem;
+  background-color: #f6f8fa;
+  border-bottom: 1px solid #d1d5da;
 }
 
 .notes-card-top {
@@ -611,10 +612,88 @@
   font-weight: 400;
 }
 
-.notes-card-actions {
+/* Three-dots menu (GitHub-style) */
+.notes-card-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notes-card-menu-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #57606a;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.notes-card-menu-trigger:hover:not(:disabled) {
+  background-color: #eaeef2;
+  color: #24292f;
+}
+
+.notes-card-menu-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notes-card-menu-dots {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.notes-card-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  min-width: 160px;
+  margin-top: 4px;
+  padding: 4px 0;
+  background: #ffffff;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(31, 35, 40, 0.12), 0 2px 6px rgba(31, 35, 40, 0.08);
+}
+
+.notes-card-menu-item {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-align: left;
+  border: none;
+  background: none;
+  color: #24292f;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.1s ease;
+}
+
+.notes-card-menu-item:hover:not(:disabled) {
+  background-color: #f6f8fa;
+}
+
+.notes-card-menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.notes-card-menu-item--danger {
+  color: #cf222e;
+}
+
+.notes-card-menu-item--danger:hover:not(:disabled) {
+  background-color: #fff1f0;
 }
 
 .notes-edit-button {
@@ -701,7 +780,7 @@
   color: #24292f;
   font-size: 0.875rem;
   line-height: 1.5;
-  margin-top: 0.75rem;
+  padding: 1rem;
 }
 
 .notes-card-markdown > :first-child {
