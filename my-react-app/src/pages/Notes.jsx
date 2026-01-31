@@ -42,6 +42,7 @@ const MemoizedMarkdown = memo(function MemoizedMarkdown({ content }) {
 function NoteCard({
   note,
   attendees = [],
+  selectedAttendeeId = null,
   isEditingDate,
   isSavingDate,
   isDeleting,
@@ -120,9 +121,10 @@ function NoteCard({
                 const hubspotId = String(a.hubspot_id ?? '').trim()
                 const key = `${note.id}-${hubspotId || 'unknown'}-${a.name}`
                 const isHubspotPerson = Boolean(hubspotId) && !isSingleDigitHubspotId(hubspotId)
+                const isSelected = selectedAttendeeId != null && String(selectedAttendeeId).trim() === hubspotId
                 const className = `notes-attendee-chip${
                   isSingleDigitHubspotId(hubspotId) ? ' notes-attendee-chip--special' : ''
-                }`
+                }${isSelected ? ' notes-attendee-chip--selected' : ''}`
 
                 if (isHubspotPerson) {
                   return (
@@ -1259,6 +1261,7 @@ function Notes({
                 key={n.id}
                 note={n}
                 attendees={attendeesByNoteId[n.id] ?? []}
+                selectedAttendeeId={notesViewMode === 'by_attendee' ? filterHubspotId : null}
                 isEditingDate={editingDateId === n.id}
                 isSavingDate={savingDateId === n.id}
                 isDeleting={deletingNoteId === n.id}

@@ -891,6 +891,12 @@
   color: #7a1d1d;
 }
 
+.notes-attendee-chip--selected {
+  background: #ddf4ff;
+  border-color: #84c8f7;
+  color: #0969da;
+}
+
 .watch-video-button {
   padding: 0.375rem 1rem;
   font-size: 0.875rem;
