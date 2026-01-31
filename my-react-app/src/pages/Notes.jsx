@@ -1192,7 +1192,7 @@ function Notes({
             setFilterHubspotId('')
           }}
         >
-          By attendee
+          Attendee
         </button>
         <button
           type="button"
@@ -1211,7 +1211,7 @@ function Notes({
             setFilterHubspotId('')
           }}
         >
-          Untagged notes
+          Untagged
         </button>
       </div>
 
