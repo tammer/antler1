@@ -44,7 +44,8 @@ function NoteCard({
   onStartEditDate,
   onCancelEditDate,
   onEdit,
-  onDelete
+  onDelete,
+  onFollowup
 }) {
   return (
     <div className="notes-card">
@@ -121,6 +122,14 @@ function NoteCard({
             disabled={isDeleting}
           >
             Edit
+          </button>
+          <button
+            type="button"
+            className="notes-followup-button"
+            onClick={() => onFollowup?.(note, attendees)}
+            disabled={isDeleting}
+          >
+            Followup
           </button>
           <button
             type="button"
@@ -863,6 +872,30 @@ function Notes({
     setIsModalOpen(true)
   }
 
+  const openFollowupModal = (noteRow, attendeesList = []) => {
+    setSaveError('')
+    setEditingNoteId(null)
+    setNoteText('')
+    const ids = Array.from(
+      new Set(
+        (attendeesList ?? [])
+          .map((a) => String(a?.hubspot_id ?? '').trim())
+          .filter(Boolean)
+      )
+    )
+    setSelectedHubspotIds(ids)
+    setModalAttendeeFallback(
+      (attendeesList ?? [])
+        .map((a) => ({
+          hubspot_id: String(a?.hubspot_id ?? ''),
+          name: String(a?.name ?? '')
+        }))
+        .filter((p) => p.hubspot_id && p.name)
+    )
+    ensureAllPeopleLoaded()
+    setIsModalOpen(true)
+  }
+
   const loadAttendeesForNote = async (noteId) => {
     const attendeesTableCandidates = ['attendees', 'Attendees']
     let lastError = null
@@ -981,6 +1014,9 @@ function Notes({
   handleDeleteNoteRef.current = handleDeleteNote
   const onEdit = useCallback((noteRow) => openEditModalRef.current?.(noteRow), [])
   const onDelete = useCallback((noteRow) => handleDeleteNoteRef.current?.(noteRow), [])
+  const onFollowup = useCallback((noteRow, attendeesList) => {
+    openFollowupModal(noteRow, attendeesList)
+  }, [])
 
   const handleSave = async () => {
     setSaveError('')
@@ -1193,6 +1229,7 @@ function Notes({
                 onCancelEditDate={onCancelEditDate}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onFollowup={onFollowup}
               />
             ))}
           </div>
