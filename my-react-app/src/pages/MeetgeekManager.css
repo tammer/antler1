@@ -496,6 +496,34 @@
   max-width: 900px;
 }
 
+.notes-recent-date-filter {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.notes-recent-date-filter label {
+  font-weight: 600;
+  color: #24292f;
+  font-size: 0.875rem;
+}
+
+.notes-recent-date-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  font-size: 1rem;
+  max-width: 12rem;
+}
+
+.notes-recent-date-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
 .notes-subtitle {
   margin-top: 0.5rem;
   color: #57606a;

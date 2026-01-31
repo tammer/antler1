@@ -21,6 +21,14 @@ function formatNoteDateForInput(createdAt) {
   return `${y}-${m}-${day}`
 }
 
+function getTodayDateString() {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function isSingleDigitHubspotId(hubspotId) {
   const s = String(hubspotId ?? '').trim()
   return /^\d$/.test(s)
@@ -494,6 +502,7 @@ function Notes({
   const [saveError, setSaveError] = useState('')
   const [filterHubspotId, setFilterHubspotId] = useState('')
   const [notesViewMode, setNotesViewMode] = useState('by_attendee') // 'recent' | 'untagged' | 'by_attendee'
+  const [recentViewDate, setRecentViewDate] = useState(() => getTodayDateString())
   const [notes, setNotes] = useState([])
   const [attendeesByNoteId, setAttendeesByNoteId] = useState({})
   const [isLoadingNotes, setIsLoadingNotes] = useState(false)
@@ -749,54 +758,24 @@ function Notes({
           }
           if (lastNotesError) throw lastNotesError
         } else {
-          // Recent view (current behavior)
-          if (filterHubspotId) {
-            let attendeeRows = null
-            let lastAttendeeError = null
-            for (const tableName of attendeesTableCandidates) {
-              const { data, error } = await supabase
-                .from(tableName)
-                .select('note_id')
-                .eq('hubspot_id', filterHubspotId)
-              if (!error) {
-                attendeeRows = data ?? []
-                lastAttendeeError = null
-                break
-              }
-              lastAttendeeError = error
-            }
-            if (lastAttendeeError) throw lastAttendeeError
-            noteIds = Array.from(new Set((attendeeRows ?? []).map((r) => r.note_id))).filter(Boolean)
-            if (noteIds.length === 0) {
-              if (!cancelled) {
-                setNotes([])
-                setAttendeesByNoteId({})
-              }
-              return
-            }
+          // Recent view: notes with created_at on the selected date
+          const dateStart = recentViewDate ? `${recentViewDate}T00:00:00.000Z` : null
+          const dateEnd = recentViewDate
+            ? (() => {
+                const d = new Date(recentViewDate + 'T00:00:00.000Z')
+                d.setUTCDate(d.getUTCDate() + 1)
+                return d.toISOString()
+              })()
+            : null
+          if (dateStart && dateEnd) {
             let lastNotesError = null
             for (const tableName of notesTableCandidates) {
               const { data, error } = await supabase
                 .from(tableName)
                 .select('id,note,created_at')
-                .in('id', noteIds)
+                .gte('created_at', dateStart)
+                .lt('created_at', dateEnd)
                 .order('created_at', { ascending: false })
-              if (!error) {
-                noteRows = data ?? []
-                lastNotesError = null
-                break
-              }
-              lastNotesError = error
-            }
-            if (lastNotesError) throw lastNotesError
-          } else {
-            let lastNotesError = null
-            for (const tableName of notesTableCandidates) {
-              const { data, error } = await supabase
-                .from(tableName)
-                .select('id,note,created_at')
-                .order('created_at', { ascending: false })
-                .limit(5)
               if (!error) {
                 noteRows = data ?? []
                 lastNotesError = null
@@ -806,6 +785,12 @@ function Notes({
             }
             if (lastNotesError) throw lastNotesError
             noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
+          } else {
+            if (!cancelled) {
+              setNotes([])
+              setAttendeesByNoteId({})
+            }
+            return
           }
         }
 
@@ -873,7 +858,7 @@ function Notes({
     return () => {
       cancelled = true
     }
-  }, [filterHubspotId, notesViewMode, supabaseReady, notesReloadKey])
+  }, [filterHubspotId, notesViewMode, recentViewDate, supabaseReady, notesReloadKey])
 
   const closeModal = () => {
     setIsModalOpen(false)
@@ -1192,7 +1177,7 @@ function Notes({
             setFilterHubspotId('')
           }}
         >
-          Attendee
+          By Attendee
         </button>
         <button
           type="button"
@@ -1201,7 +1186,7 @@ function Notes({
             setNotesViewMode('recent')
           }}
         >
-          Recent
+          By Date
         </button>
         <button
           type="button"
@@ -1229,6 +1214,20 @@ function Notes({
           />
         )}
 
+        {notesViewMode === 'recent' && (
+          <div className="notes-recent-date-filter">
+            <label htmlFor="notes-recent-date">Select a date</label>
+            <input
+              type="date"
+              id="notes-recent-date"
+              className="notes-recent-date-input"
+              value={recentViewDate}
+              onChange={(e) => setRecentViewDate(e.target.value)}
+              aria-label="Select date to view notes"
+            />
+          </div>
+        )}
+
         {isLoadingNotes && (
           <div className="message info">Loading notes...</div>
         )}
@@ -1239,8 +1238,8 @@ function Notes({
         {!isLoadingNotes && !notesError && filterHubspotId && notes.length === 0 && (
           <div className="notes-empty">No notes found for this attendee.</div>
         )}
-        {!isLoadingNotes && !notesError && notesViewMode === 'recent' && !filterHubspotId && notes.length === 0 && (
-          <div className="notes-empty">No notes yet.</div>
+        {!isLoadingNotes && !notesError && notesViewMode === 'recent' && notes.length === 0 && (
+          <div className="notes-empty">No notes for this date.</div>
         )}
         {!isLoadingNotes && !notesError && notesViewMode === 'untagged' && notes.length === 0 && (
           <div className="notes-empty">No untagged notes.</div>
