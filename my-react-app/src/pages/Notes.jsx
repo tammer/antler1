@@ -1218,14 +1218,14 @@ function Notes({
       <div className="notes-filter">
         {peopleError && <div className="message error">{peopleError}</div>}
         {isLoadingPeople && <div className="message info">Loading attendees...</div>}
-        {(notesViewMode === 'recent' || notesViewMode === 'by_attendee') && (
+        {notesViewMode === 'by_attendee' && (
           <PersonSingleSelect
             people={people}
             selectedId={filterHubspotId}
             onChange={setFilterHubspotId}
             inputId="notes-filter-person"
             label="Select a meeting attendee"
-            chipHighlight={notesViewMode === 'by_attendee'}
+            chipHighlight
           />
         )}
 
