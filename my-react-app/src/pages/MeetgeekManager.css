@@ -290,6 +290,17 @@
   background: #eaeef2;
 }
 
+.notes-person-chip--highlight {
+  background: #ddf4ff;
+  border-color: #84c8f7;
+  color: #0969da;
+}
+
+.notes-person-chip--highlight:hover {
+  background: #b6e3ff;
+  border-color: #84c8f7;
+}
+
 .notes-person-chip-name {
   font-weight: 500;
 }

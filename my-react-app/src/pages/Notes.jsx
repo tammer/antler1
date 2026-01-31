@@ -190,7 +190,7 @@ function NoteCard({
 
 const MemoizedNoteCard = memo(NoteCard)
 
-function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
+function PersonSingleSelect({ people, selectedId, onChange, inputId, label, chipHighlight = false }) {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const comboboxRef = useRef(null)
@@ -309,7 +309,7 @@ function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
         <div className="notes-selected-people">
           <button
             type="button"
-            className="notes-person-chip"
+            className={`notes-person-chip${chipHighlight ? ' notes-person-chip--highlight' : ''}`}
             onClick={clearSelection}
             title="Clear selection"
           >
@@ -1223,6 +1223,7 @@ function Notes({
             onChange={setFilterHubspotId}
             inputId="notes-filter-person"
             label="Select a meeting attendee"
+            chipHighlight={notesViewMode === 'by_attendee'}
           />
         )}
 
