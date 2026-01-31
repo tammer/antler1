@@ -1,8 +1,145 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './MeetgeekManager.css'
 import { supabase } from '../lib/supabaseClient'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+
+function formatNoteDate(createdAt) {
+  if (!createdAt) return ''
+  const d = new Date(createdAt)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function formatNoteDateForInput(createdAt) {
+  if (!createdAt) return ''
+  const d = new Date(createdAt)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function isSingleDigitHubspotId(hubspotId) {
+  const s = String(hubspotId ?? '').trim()
+  return /^\d$/.test(s)
+}
+
+const MemoizedMarkdown = memo(function MemoizedMarkdown({ content }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+      {content ?? ''}
+    </ReactMarkdown>
+  )
+})
+
+function NoteCard({
+  note,
+  attendees = [],
+  isEditingDate,
+  isSavingDate,
+  isDeleting,
+  onDateChange,
+  onStartEditDate,
+  onCancelEditDate,
+  onEdit,
+  onDelete
+}) {
+  return (
+    <div className="notes-card">
+      <div className="notes-card-header">
+        <div className="notes-card-top">
+          <div className="notes-card-meta notes-card-date-wrapper">
+            {isEditingDate ? (
+              <>
+                <input
+                  type="date"
+                  className="notes-card-date-input"
+                  value={formatNoteDateForInput(note.created_at)}
+                  onChange={(e) => onDateChange(note.id, e.target.value)}
+                  onBlur={onCancelEditDate}
+                  disabled={isSavingDate}
+                  autoFocus
+                  aria-label="Edit note date"
+                />
+                {isSavingDate && (
+                  <span className="notes-card-date-saving" aria-hidden="true">
+                    Saving...
+                  </span>
+                )}
+              </>
+            ) : (
+              <button
+                type="button"
+                className="notes-card-date-display"
+                onClick={() => onStartEditDate(note.id)}
+                title="Click to change date"
+              >
+                {formatNoteDate(note.created_at)}
+              </button>
+            )}
+          </div>
+          {attendees.length > 0 && (
+            <div className="notes-attendees notes-attendees-inline">
+              {attendees.map((a) => {
+                const hubspotId = String(a.hubspot_id ?? '').trim()
+                const key = `${note.id}-${hubspotId || 'unknown'}-${a.name}`
+                const isHubspotPerson = Boolean(hubspotId) && !isSingleDigitHubspotId(hubspotId)
+                const className = `notes-attendee-chip${
+                  isSingleDigitHubspotId(hubspotId) ? ' notes-attendee-chip--special' : ''
+                }`
+
+                if (isHubspotPerson) {
+                  return (
+                    <a
+                      key={key}
+                      className={className}
+                      href={`https://app-eu1.hubspot.com/contacts/143614254/record/0-1/${encodeURIComponent(hubspotId)}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open in HubSpot"
+                    >
+                      {a.name}
+                    </a>
+                  )
+                }
+                return (
+                  <span key={key} className={className}>
+                    {a.name}
+                  </span>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <div className="notes-card-actions">
+          <button
+            type="button"
+            className="notes-edit-button"
+            onClick={() => onEdit(note)}
+            disabled={isDeleting}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            className="notes-delete-button"
+            onClick={() => onDelete(note)}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      </div>
+      <div className="notes-card-markdown">
+        <MemoizedMarkdown content={note.note ?? ''} />
+      </div>
+    </div>
+  )
+}
+
+const MemoizedNoteCard = memo(NoteCard)
 
 function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
   const [query, setQuery] = useState('')
@@ -314,28 +451,13 @@ function Notes({
   const [isLoadingModalAttendees, setIsLoadingModalAttendees] = useState(false)
   const [deletingNoteId, setDeletingNoteId] = useState(null)
   const meetingPeopleInputRef = useRef(null)
-
-  const formatNoteDate = (createdAt) => {
-    if (!createdAt) return ''
-    const d = new Date(createdAt)
-    if (Number.isNaN(d.getTime())) return ''
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-  }
-
-  const formatNoteDateForInput = (createdAt) => {
-    if (!createdAt) return ''
-    const d = new Date(createdAt)
-    if (Number.isNaN(d.getTime())) return ''
-    const y = d.getFullYear()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
-  }
+  const openEditModalRef = useRef(null)
+  const handleDeleteNoteRef = useRef(null)
 
   const [savingDateId, setSavingDateId] = useState(null)
   const [editingDateId, setEditingDateId] = useState(null)
 
-  const handleDateChange = async (noteId, dateString) => {
+  const handleDateChange = useCallback(async (noteId, dateString) => {
     if (!dateString || !noteId) return
     const isoString = `${dateString}T12:00:00.000Z`
     if (!supabaseReady) {
@@ -368,12 +490,10 @@ function Notes({
     } finally {
       setSavingDateId(null)
     }
-  }
+  }, [])
 
-  const isSingleDigitHubspotId = (hubspotId) => {
-    const s = String(hubspotId ?? '').trim()
-    return /^\d$/.test(s)
-  }
+  const onStartEditDate = useCallback((noteId) => setEditingDateId(noteId), [])
+  const onCancelEditDate = useCallback(() => setEditingDateId(null), [])
 
   const filterPerson = useMemo(() => {
     if (!filterHubspotId) return null
@@ -465,7 +585,7 @@ function Notes({
     return () => {
       cancelled = true
     }
-  }, [supabaseReady, notesReloadKey])
+  }, [supabaseReady])
 
   useEffect(() => {
     let cancelled = false
@@ -857,6 +977,11 @@ function Notes({
     }
   }
 
+  openEditModalRef.current = openEditModal
+  handleDeleteNoteRef.current = handleDeleteNote
+  const onEdit = useCallback((noteRow) => openEditModalRef.current?.(noteRow), [])
+  const onDelete = useCallback((noteRow) => handleDeleteNoteRef.current?.(noteRow), [])
+
   const handleSave = async () => {
     setSaveError('')
 
@@ -1056,104 +1181,19 @@ function Notes({
         {!isLoadingNotes && !notesError && notes.length > 0 && (
           <div className="notes-list">
             {notes.map((n) => (
-              <div key={n.id} className="notes-card">
-                <div className="notes-card-header">
-                  <div className="notes-card-top">
-                    <div className="notes-card-meta notes-card-date-wrapper">
-                      {editingDateId === n.id ? (
-                        <>
-                          <input
-                            type="date"
-                            className="notes-card-date-input"
-                            value={formatNoteDateForInput(n.created_at)}
-                            onChange={(e) => handleDateChange(n.id, e.target.value)}
-                            onBlur={() => setEditingDateId(null)}
-                            disabled={savingDateId === n.id}
-                            autoFocus
-                            aria-label="Edit note date"
-                          />
-                          {savingDateId === n.id && (
-                            <span className="notes-card-date-saving" aria-hidden="true">
-                              Saving...
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <button
-                          type="button"
-                          className="notes-card-date-display"
-                          onClick={() => setEditingDateId(n.id)}
-                          title="Click to change date"
-                        >
-                          {formatNoteDate(n.created_at)}
-                        </button>
-                      )}
-                    </div>
-                    {(attendeesByNoteId[n.id]?.length ?? 0) > 0 && (
-                      <div className="notes-attendees notes-attendees-inline">
-                        {attendeesByNoteId[n.id].map((a) => {
-                          const hubspotId = String(a.hubspot_id ?? '').trim()
-                          const key = `${n.id}-${hubspotId || 'unknown'}-${a.name}`
-                          const isHubspotPerson =
-                            Boolean(hubspotId) && !isSingleDigitHubspotId(hubspotId)
-
-                          const className = `notes-attendee-chip${
-                            isSingleDigitHubspotId(hubspotId)
-                              ? ' notes-attendee-chip--special'
-                              : ''
-                          }`
-
-                          if (isHubspotPerson) {
-                            return (
-                              <a
-                                key={key}
-                                className={className}
-                                href={`https://app-eu1.hubspot.com/contacts/143614254/record/0-1/${encodeURIComponent(
-                                  hubspotId
-                                )}/`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                title="Open in HubSpot"
-                              >
-                                {a.name}
-                              </a>
-                            )
-                          }
-
-                          return (
-                            <span key={key} className={className}>
-                              {a.name}
-                            </span>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  <div className="notes-card-actions">
-                    <button
-                      type="button"
-                      className="notes-edit-button"
-                      onClick={() => openEditModal(n)}
-                      disabled={deletingNoteId === n.id}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="notes-delete-button"
-                      onClick={() => handleDeleteNote(n)}
-                      disabled={deletingNoteId === n.id}
-                    >
-                      {deletingNoteId === n.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  </div>
-                </div>
-                <div className="notes-card-markdown">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {n.note ?? ''}
-                  </ReactMarkdown>
-                </div>
-              </div>
+              <MemoizedNoteCard
+                key={n.id}
+                note={n}
+                attendees={attendeesByNoteId[n.id] ?? []}
+                isEditingDate={editingDateId === n.id}
+                isSavingDate={savingDateId === n.id}
+                isDeleting={deletingNoteId === n.id}
+                onDateChange={handleDateChange}
+                onStartEditDate={onStartEditDate}
+                onCancelEditDate={onCancelEditDate}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </div>
         )}
