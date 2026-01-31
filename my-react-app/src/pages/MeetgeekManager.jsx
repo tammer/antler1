@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './MeetgeekManager.css'
+import { htmlWithBlankLinks } from '../lib/htmlUtils'
 
 function MeetgeekManager() {
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState('')
@@ -510,7 +511,7 @@ function MeetgeekManager() {
                   ) : meetingHighlights ? (
                     <div
                       className="highlights-text"
-                      dangerouslySetInnerHTML={{ __html: meetingHighlights }}
+                      dangerouslySetInnerHTML={{ __html: htmlWithBlankLinks(meetingHighlights) }}
                     />
                   ) : (
                     <div className="highlights-placeholder">Select a meeting to view highlights</div>
@@ -528,7 +529,7 @@ function MeetgeekManager() {
                   ) : geminiSummary ? (
                     <div
                       className="highlights-text gemini-summary"
-                      dangerouslySetInnerHTML={{ __html: geminiSummary }}
+                      dangerouslySetInnerHTML={{ __html: htmlWithBlankLinks(geminiSummary) }}
                     />
                   ) : (
                     <div className="highlights-placeholder">Select a meeting to view Gemini summary</div>

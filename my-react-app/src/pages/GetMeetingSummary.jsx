@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import '../App.css'
+import { htmlWithBlankLinks } from '../lib/htmlUtils'
 
 const API_TOKEN = 'eu-MnEEeTvj8ZcI1s25WQJFFMk895tJozKCdqeWq2Mvcq4MIaIAuLZWDxikIdH0n4Y5Ygf1afemCmn9itdzKDGujJwd0WsTGxPJolIf5COlM12DcFYsoe2gdVrdjVbAO'
 const MEETINGS_API_URL = 'https://api.meetgeek.ai/v1/meetings'
@@ -128,7 +129,7 @@ function GetMeetingSummary() {
             <h2>Summary</h2>
             <div 
               className="summary-content"
-              dangerouslySetInnerHTML={{ __html: summary }}
+              dangerouslySetInnerHTML={{ __html: htmlWithBlankLinks(summary) }}
             />
           </div>
         )}
