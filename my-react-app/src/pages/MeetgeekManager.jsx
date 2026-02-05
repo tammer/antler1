@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import './MeetgeekManager.css'
-import { htmlWithBlankLinks } from '../lib/htmlUtils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
@@ -13,8 +12,6 @@ function MeetgeekManager() {
   const [messageType, setMessageType] = useState('') // 'success' or 'error'
   const [searchTerm, setSearchTerm] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
-  const [meetingHighlights, setMeetingHighlights] = useState('')
-  const [loadingHighlights, setLoadingHighlights] = useState(false)
   const [geminiSummary, setGeminiSummary] = useState('')
   const [loadingGeminiSummary, setLoadingGeminiSummary] = useState(false)
 
@@ -70,125 +67,6 @@ function MeetgeekManager() {
     return meeting.name || meeting.title || meeting.meetingName || meeting.subject || `Meeting ${index + 1}`
   }
 
-  // Escape HTML to prevent XSS
-  const escapeHtml = (text) => {
-    const div = document.createElement('div')
-    div.textContent = text
-    return div.innerHTML
-  }
-
-  // Format JSON into HTML - labels as h2, highlightText as p
-  const formatJsonToHtml = (data) => {
-    if (!data) return '<p>No highlights available</p>'
-
-    // If it's already a string, try to parse it
-    let jsonData = data
-    if (typeof data === 'string') {
-      try {
-        jsonData = JSON.parse(data)
-      } catch {
-        // If it's not JSON, return it as is
-        return `<p>${escapeHtml(data)}</p>`
-      }
-    }
-
-    const htmlParts = []
-
-    // Handle array of highlight objects
-    if (Array.isArray(jsonData)) {
-      jsonData.forEach((item) => {
-        if (item && typeof item === 'object') {
-          if (item.label) {
-            htmlParts.push(`<h2>${escapeHtml(item.label)}</h2>`)
-          }
-          if (item.highlightText) {
-            htmlParts.push(`<p>${escapeHtml(item.highlightText)}</p>`)
-          }
-        }
-      })
-    }
-    // Handle single object
-    else if (jsonData && typeof jsonData === 'object') {
-      // Check if it has label and highlightText at root level
-      if (jsonData.label) {
-        htmlParts.push(`<h2>${escapeHtml(jsonData.label)}</h2>`)
-      }
-      if (jsonData.highlightText) {
-        htmlParts.push(`<p>${escapeHtml(jsonData.highlightText)}</p>`)
-      }
-      // Check if it has an array of highlights
-      if (Array.isArray(jsonData.highlights)) {
-        jsonData.highlights.forEach((item) => {
-          if (item && typeof item === 'object') {
-            if (item.label) {
-              htmlParts.push(`<h2>${escapeHtml(item.label)}</h2>`)
-            }
-            if (item.highlightText) {
-              htmlParts.push(`<p>${escapeHtml(item.highlightText)}</p>`)
-            }
-          }
-        })
-      }
-      // Iterate through all properties to find label/highlightText pairs
-      Object.keys(jsonData).forEach((key) => {
-        const value = jsonData[key]
-        if (key === 'label' && typeof value === 'string') {
-          htmlParts.push(`<h2>${escapeHtml(value)}</h2>`)
-        } else if (key === 'highlightText' && typeof value === 'string') {
-          htmlParts.push(`<p>${escapeHtml(value)}</p>`)
-        } else if (value && typeof value === 'object' && !Array.isArray(value)) {
-          // Recursively check nested objects
-          if (value.label) {
-            htmlParts.push(`<h2>${escapeHtml(value.label)}</h2>`)
-          }
-          if (value.highlightText) {
-            htmlParts.push(`<p>${escapeHtml(value.highlightText)}</p>`)
-          }
-        }
-      })
-    }
-
-    if (htmlParts.length === 0) {
-      return '<p>No highlights found in the response</p>'
-    }
-
-    return `<div class="highlights-formatted">${htmlParts.join('')}</div>`
-  }
-
-  // Fetch meeting highlights
-  const fetchMeetingHighlights = async (meetingId) => {
-    try {
-      setLoadingHighlights(true)
-      const response = await fetch(
-        `https://tammer.app.n8n.cloud/webhook/meeting-highlights?id=${encodeURIComponent(meetingId)}`
-      )
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const text = await response.text()
-      let jsonData
-
-      // Try to parse as JSON
-      try {
-        jsonData = JSON.parse(text)
-      } catch {
-        // If not JSON, use the text as is
-        jsonData = text
-      }
-
-      // Format to HTML
-      const htmlContent = formatJsonToHtml(jsonData)
-      setMeetingHighlights(htmlContent)
-    } catch (error) {
-      console.error('Error fetching meeting highlights:', error)
-      setMeetingHighlights('<p class="error-message">Failed to load meeting highlights.</p>')
-    } finally {
-      setLoadingHighlights(false)
-    }
-  }
-
   // Fetch Gemini Summary
   const fetchGeminiSummary = async (meetingId) => {
     try {
@@ -223,7 +101,7 @@ function MeetgeekManager() {
     setSearchTerm(getDisplayName(selectedMeeting, index))
     setShowDropdown(false)
 
-    // Extract the meeting ID and fetch highlights
+    // Extract the meeting ID
     const meetingId = selectedMeeting.id ||
       selectedMeeting.meetingId ||
       selectedMeeting._id ||
@@ -232,13 +110,8 @@ function MeetgeekManager() {
       selectedMeeting.MeetingID
 
     if (meetingId) {
-      // Fetch both highlights and Gemini summary in parallel
-      await Promise.all([
-        fetchMeetingHighlights(meetingId),
-        fetchGeminiSummary(meetingId)
-      ])
+      await fetchGeminiSummary(meetingId)
     } else {
-      setMeetingHighlights('Meeting ID not found.')
       setGeminiSummary('')
     }
   }
@@ -253,7 +126,6 @@ function MeetgeekManager() {
       const selectedDisplayName = getDisplayName(meetings[parseInt(selectedMeetingIndex)], parseInt(selectedMeetingIndex))
       if (value !== selectedDisplayName) {
         setSelectedMeetingIndex('')
-        setMeetingHighlights('') // Clear highlights when selection is cleared
         setGeminiSummary('') // Clear Gemini summary when selection is cleared
       }
     }
@@ -268,7 +140,6 @@ function MeetgeekManager() {
   const handleClear = () => {
     setSearchTerm('')
     setSelectedMeetingIndex('')
-    setMeetingHighlights('')
     setGeminiSummary('')
     setShowDropdown(false)
   }
@@ -373,7 +244,6 @@ function MeetgeekManager() {
       setMessageType('success')
       setSelectedMeetingIndex('') // Clear the selection
       setSearchTerm('') // Clear the search input
-      setMeetingHighlights('') // Clear highlights
       setGeminiSummary('') // Clear Gemini summary
 
       // Open Gemini in a new tab
