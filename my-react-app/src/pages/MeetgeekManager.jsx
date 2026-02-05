@@ -192,14 +192,15 @@ function MeetgeekManager() {
     try {
       setLoadingGeminiSummary(true)
       const response = await fetch(
-        `https://tammer.app.n8n.cloud/webhook/summary?id=${encodeURIComponent(meetingId)}`
+        `https://api.tammer.com/summary_from_id?meeting_id=${encodeURIComponent(meetingId)}`
       )
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const htmlContent = await response.text()
+      const data = await response.json()
+      const htmlContent = data?.summary || ''
       if (htmlContent === '') {
         setGeminiSummary('<p class="error-message">Failed to load Gemini summary. (Probably Gemini is rate limited. Try again later.)</p>')
         return
