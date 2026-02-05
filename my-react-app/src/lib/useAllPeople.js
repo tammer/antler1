@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-const PEOPLE_WEBHOOK_URL = 'https://tammer.app.n8n.cloud/webhook/people?all=yes'
+const PEOPLE_WEBHOOK_URL = 'http://api.tammer.com/full'
 
 function normalizePeople(raw) {
   const list = Array.isArray(raw) ? raw : []
