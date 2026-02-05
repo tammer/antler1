@@ -507,22 +507,7 @@ function MeetgeekManager() {
           {selectedMeetingIndex !== '' && (
             <div className="highlights-row">
               <div className="highlights-container">
-                <label>Meetgek Generic Summary (not that good)</label>
-                <div className="highlights-content">
-                  {loadingHighlights ? (
-                    <div className="highlights-loading">Loading highlights...</div>
-                  ) : meetingHighlights ? (
-                    <div
-                      className="highlights-text"
-                      dangerouslySetInnerHTML={{ __html: htmlWithBlankLinks(meetingHighlights) }}
-                    />
-                  ) : (
-                    <div className="highlights-placeholder">Select a meeting to view highlights</div>
-                  )}
-                </div>
-              </div>
-              <div className="highlights-container">
-                <label>Our Own Summary (Better)</label>
+                <label>Our Own Summary</label>
                 <div className="highlights-content">
                   {loadingGeminiSummary ? (
                     <div className="highlights-loading">
