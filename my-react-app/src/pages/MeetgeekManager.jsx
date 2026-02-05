@@ -21,7 +21,7 @@ function MeetgeekManager() {
     const fetchMeetings = async () => {
       try {
         setLoadingMeetings(true)
-        const response = await fetch('https://tammer.app.n8n.cloud/webhook/all-meetings')
+        const response = await fetch('https://api.tammer.com/get_all_meetings')
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
