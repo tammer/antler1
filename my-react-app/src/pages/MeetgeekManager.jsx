@@ -507,7 +507,6 @@ function MeetgeekManager() {
           {selectedMeetingIndex !== '' && (
             <div className="highlights-row">
               <div className="highlights-container">
-                <label>Our Own Summary</label>
                 <div className="highlights-content">
                   {loadingGeminiSummary ? (
                     <div className="highlights-loading">
