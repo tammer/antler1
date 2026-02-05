@@ -198,7 +198,7 @@ function MeetgeekManager() {
 
     try {
       console.log('Submitting with meeting ID:', meetingId, 'from meeting:', selectedMeeting)
-      const url = `https://tammer.app.n8n.cloud/webhook/gemini-prompt?id=${encodeURIComponent(meetingId)}`
+      const url = `https://api.tammer.com/get_transcript?meeting_id=${encodeURIComponent(meetingId)}`
       console.log('URL:', url)
       const response = await fetch(
         `${url}`
@@ -208,7 +208,8 @@ function MeetgeekManager() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const text = await response.text()
+      const text_ = await response.text()
+      const text = "Transcript:\n" + text_
       console.log('Response received, length:', text.length)
 
       if (!text || text.trim().length === 0) {
