@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './MeetgeekManager.css'
 import { htmlWithBlankLinks } from '../lib/htmlUtils'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 function MeetgeekManager() {
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState('')
@@ -200,12 +202,12 @@ function MeetgeekManager() {
       }
 
       const data = await response.json()
-      const htmlContent = data?.summary || ''
-      if (htmlContent === '') {
+      const markdown = data?.summary || ''
+      if (markdown === '') {
         setGeminiSummary('<p class="error-message">Failed to load Gemini summary. (Probably Gemini is rate limited. Try again later.)</p>')
         return
       }
-      setGeminiSummary(htmlContent)
+      setGeminiSummary(markdown)
     } catch (error) {
       console.error('Error fetching Gemini summary:', error)
       setGeminiSummary('<p class="error-message">Failed to load Gemini summary.</p>')
@@ -528,10 +530,18 @@ function MeetgeekManager() {
                       <div>Loading Gemini Summary</div>
                     </div>
                   ) : geminiSummary ? (
-                    <div
-                      className="highlights-text gemini-summary"
-                      dangerouslySetInnerHTML={{ __html: htmlWithBlankLinks(geminiSummary) }}
-                    />
+                    <div className="highlights-text gemini-summary">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a: ({ node, ...props }) => (
+                            <a {...props} target="_blank" rel="noopener noreferrer" />
+                          )
+                        }}
+                      >
+                        {geminiSummary}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <div className="highlights-placeholder">Select a meeting to view Gemini summary</div>
                   )}
