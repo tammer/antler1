@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import NavBar from './components/NavBar'
 import Home from './pages/Home'
-import GetMeetingSummary from './pages/GetMeetingSummary'
 import MeetgeekManager from './pages/MeetgeekManager'
 import Notes from './pages/Notes'
 import { useAllPeople } from './lib/useAllPeople'
@@ -12,7 +11,6 @@ import './App.css'
 
 const pageFromPath = (path) => {
   if (path === '/login') return 'login'
-  if (path === '/get-meeting-summary') return 'get-meeting-summary'
   if (path === '/meetgeek-manager') return 'meetgeek-manager'
   if (path === '/notes') return 'notes'
   return 'home'
@@ -84,7 +82,6 @@ function App() {
         )}
 
         {!isAuthLoading && isAuthed && activePage === 'home' && <Home navigate={navigate} />}
-        {!isAuthLoading && isAuthed && activePage === 'get-meeting-summary' && <GetMeetingSummary />}
         {!isAuthLoading && isAuthed && activePage === 'meetgeek-manager' && <MeetgeekManager />}
         {!isAuthLoading && isAuthed && activePage === 'notes' && (
           <Notes
