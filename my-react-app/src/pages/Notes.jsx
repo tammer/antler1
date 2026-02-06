@@ -524,10 +524,11 @@ function Notes({
     try {
       const notesTableCandidates = ['notes', 'Notes']
       let lastNotesError = null
+      const updatedAt = new Date().toISOString()
       for (const tableName of notesTableCandidates) {
         const { error } = await supabase
           .from(tableName)
-          .update({ meeting_at: isoString })
+          .update({ meeting_at: isoString, updated_at: updatedAt })
           .eq('id', noteId)
         if (!error) {
           lastNotesError = null
@@ -537,7 +538,9 @@ function Notes({
       }
       if (lastNotesError) throw lastNotesError
       setNotes((prev) =>
-        prev.map((n) => (n.id === noteId ? { ...n, meeting_at: isoString } : n))
+        prev.map((n) =>
+          n.id === noteId ? { ...n, meeting_at: isoString, updated_at: updatedAt } : n
+        )
       )
       setEditingDateId(null)
     } catch (err) {
@@ -1081,10 +1084,11 @@ function Notes({
         // Edit existing note: update note text and replace attendees
         const notesTableCandidates = ['notes', 'Notes']
         let lastNotesError = null
+        const updatedAt = new Date().toISOString()
         for (const tableName of notesTableCandidates) {
           const { error } = await supabase
             .from(tableName)
-            .update({ note })
+            .update({ note, updated_at: updatedAt })
             .eq('id', editingNoteId)
           if (!error) {
             lastNotesError = null
