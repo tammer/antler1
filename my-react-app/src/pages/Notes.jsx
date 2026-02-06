@@ -4,16 +4,16 @@ import { supabase } from '../lib/supabaseClient'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-function formatNoteDate(createdAt) {
-  if (!createdAt) return ''
-  const d = new Date(createdAt)
+function formatNoteDate(meetingAt) {
+  if (!meetingAt) return ''
+  const d = new Date(meetingAt)
   if (Number.isNaN(d.getTime())) return ''
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-function formatNoteDateForInput(createdAt) {
-  if (!createdAt) return ''
-  const d = new Date(createdAt)
+function formatNoteDateForInput(meetingAt) {
+  if (!meetingAt) return ''
+  const d = new Date(meetingAt)
   if (Number.isNaN(d.getTime())) return ''
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -99,7 +99,7 @@ function NoteCard({
                 <input
                   type="date"
                   className="notes-card-date-input"
-                  value={formatNoteDateForInput(note.created_at)}
+                  value={formatNoteDateForInput(note.meeting_at)}
                   onChange={(e) => onDateChange(note.id, e.target.value)}
                   onBlur={onCancelEditDate}
                   disabled={isSavingDate}
@@ -119,7 +119,7 @@ function NoteCard({
                 onClick={() => onStartEditDate(note.id)}
                 title="Click to change date"
               >
-                {formatNoteDate(note.created_at)}
+                {formatNoteDate(note.meeting_at)}
               </button>
             )}
           </div>
@@ -527,7 +527,7 @@ function Notes({
       for (const tableName of notesTableCandidates) {
         const { error } = await supabase
           .from(tableName)
-          .update({ created_at: isoString })
+          .update({ meeting_at: isoString })
           .eq('id', noteId)
         if (!error) {
           lastNotesError = null
@@ -537,7 +537,7 @@ function Notes({
       }
       if (lastNotesError) throw lastNotesError
       setNotes((prev) =>
-        prev.map((n) => (n.id === noteId ? { ...n, created_at: isoString } : n))
+        prev.map((n) => (n.id === noteId ? { ...n, meeting_at: isoString } : n))
       )
       setEditingDateId(null)
     } catch (err) {
@@ -697,8 +697,8 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,created_at')
-              .order('created_at', { ascending: false })
+              .select('id,note,meeting_at,updated_at')
+              .order('meeting_at', { ascending: false })
               .limit(200)
             if (!error) {
               const allRows = data ?? []
@@ -741,9 +741,9 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,created_at')
+              .select('id,note,meeting_at,updated_at')
               .in('id', noteIds)
-              .order('created_at', { ascending: false })
+              .order('meeting_at', { ascending: false })
             if (!error) {
               noteRows = data ?? []
               lastNotesError = null
@@ -753,7 +753,7 @@ function Notes({
           }
           if (lastNotesError) throw lastNotesError
         } else {
-          // Recent view: notes with created_at on the selected date
+          // Recent view: notes with meeting_at on the selected date
           const dateStart = recentViewDate ? `${recentViewDate}T00:00:00.000Z` : null
           const dateEnd = recentViewDate
             ? (() => {
@@ -767,10 +767,10 @@ function Notes({
             for (const tableName of notesTableCandidates) {
               const { data, error } = await supabase
                 .from(tableName)
-                .select('id,note,created_at')
-                .gte('created_at', dateStart)
-                .lt('created_at', dateEnd)
-                .order('created_at', { ascending: false })
+                .select('id,note,meeting_at,updated_at')
+                .gte('meeting_at', dateStart)
+                .lt('meeting_at', dateEnd)
+                .order('meeting_at', { ascending: false })
               if (!error) {
                 noteRows = data ?? []
                 lastNotesError = null
