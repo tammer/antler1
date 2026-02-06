@@ -380,8 +380,7 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label, inpu
     onChange((prev) => prev.filter((id) => id !== hubspotId))
   }
 
-  const clearAll = () => {
-    onChange([])
+  const clearInput = () => {
     setQuery('')
     setIsOpen(false)
   }
@@ -434,12 +433,12 @@ function PeopleMultiSelect({ people, selectedIds, onChange, inputId, label, inpu
             autoComplete="off"
             aria-label="Search and select people"
           />
-          {(query || selectedIds.length > 0) && (
+          {query.length > 0 && (
             <button
               type="button"
               className="clear-button"
-              onClick={clearAll}
-              aria-label="Clear people selection"
+              onClick={clearInput}
+              aria-label="Clear search"
             >
               ×
             </button>
