@@ -76,7 +76,51 @@ function NoteCard({
   onFollowup
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [interrogateLoading, setInterrogateLoading] = useState(false)
   const menuRef = useRef(null)
+
+  const handleInterrogateTranscript = async () => {
+    if (!note.external_id || interrogateLoading) return
+    setInterrogateLoading(true)
+    try {
+      const response = await fetch(
+        `https://api.tammer.com/get_transcript?meeting_id=${encodeURIComponent(note.external_id)}`
+      )
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const text_ = await response.text()
+      const text = 'Transcript:\n' + text_
+      if (!text || text.trim().length === 0) {
+        throw new Error('Empty response from server')
+      }
+      try {
+        await navigator.clipboard.writeText(text)
+      } catch (clipboardError) {
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        try {
+          document.execCommand('copy')
+        } catch (fallbackError) {
+          document.body.removeChild(textArea)
+          throw new Error('Failed to copy to clipboard. Please copy manually.')
+        }
+        document.body.removeChild(textArea)
+      }
+      window.open('https://gemini.google.com/app', '_blank')
+    } catch (error) {
+      console.error('Error interrogating transcript:', error)
+      alert(error.message || 'Something went wrong. Please try again.')
+    } finally {
+      setInterrogateLoading(false)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -203,6 +247,19 @@ function NoteCard({
           )}
         </div>
       </div>
+      {note.external_id && (
+        <div className="notes-card-transcript-link">
+          This note is linked to a transcript.{' '}
+          <button
+            type="button"
+            className="notes-card-transcript-gemini-link"
+            onClick={handleInterrogateTranscript}
+            disabled={interrogateLoading}
+          >
+            {interrogateLoading ? 'Loading...' : 'Interrogate transcript with Gemini'}
+          </button>
+        </div>
+      )}
       <div className="notes-card-markdown">
         <MemoizedMarkdown content={note.note ?? ''} />
       </div>
@@ -739,7 +796,7 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,meeting_at,updated_at,archived')
+              .select('id,note,meeting_at,updated_at,archived,external_id')
               .order('meeting_at', { ascending: false })
               .limit(200)
             if (!error) {
@@ -787,7 +844,7 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,meeting_at,updated_at,archived')
+              .select('id,note,meeting_at,updated_at,archived,external_id')
               .in('id', noteIds)
               .eq('archived', false)
               .order('meeting_at', { ascending: false })
@@ -814,7 +871,7 @@ function Notes({
             for (const tableName of notesTableCandidates) {
               const { data, error } = await supabase
                 .from(tableName)
-                .select('id,note,meeting_at,updated_at,archived')
+                .select('id,note,meeting_at,updated_at,archived,external_id')
                 .gte('meeting_at', dateStart)
                 .lt('meeting_at', dateEnd)
                 .eq('archived', false)
