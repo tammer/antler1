@@ -771,49 +771,15 @@ function Notes({
           return
         }
 
-        // Untagged view: notes that have no people associated
+        // Untagged view: notes that have no people associated (via Supabase function)
         if (notesViewMode === 'untagged') {
-          let noteIdsWithAttendees = new Set()
-          let lastAttendeeError = null
-          for (const tableName of attendeesTableCandidates) {
-            const { data, error } = await supabase
-              .from(tableName)
-              .select('note_id')
-            if (!error) {
-              ;(data ?? []).forEach((r) => {
-                if (r?.note_id) noteIdsWithAttendees.add(r.note_id)
-              })
-              lastAttendeeError = null
-              break
-            }
-            lastAttendeeError = error
-          }
-          if (lastAttendeeError) {
-            console.error('Failed to load note IDs with attendees:', lastAttendeeError)
-          }
-
-          let lastNotesError = null
-          for (const tableName of notesTableCandidates) {
-            const { data, error } = await supabase
-              .from(tableName)
-              .select('id,note,meeting_at,updated_at,archived,external_id')
-              .order('meeting_at', { ascending: false })
-              .limit(200)
-            if (!error) {
-              const allRows = data ?? []
-              const activeRows = (allRows ?? []).filter(
-                (r) => r?.archived === false || r?.archived == null
-              )
-              noteRows =
-                noteIdsWithAttendees.size === 0
-                  ? activeRows
-                  : activeRows.filter((r) => !noteIdsWithAttendees.has(r.id))
-              lastNotesError = null
-              break
-            }
-            lastNotesError = error
-          }
-          if (lastNotesError) throw lastNotesError
+          const { data, error } = await supabase.rpc('get_notes_with_no_attendees')
+          if (error) throw error
+          const allRows = data ?? []
+          const activeRows = allRows.filter(
+            (r) => r?.archived === false || r?.archived == null
+          )
+          noteRows = activeRows
           noteIds = (noteRows ?? []).map((r) => r.id).filter(Boolean)
         } else if (notesViewMode === 'by_attendee' && filterHubspotId) {
           // By-attendee view with selection: notes for this person
