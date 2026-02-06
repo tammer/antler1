@@ -514,7 +514,17 @@ function Notes({
   const [editingNoteId, setEditingNoteId] = useState(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
-  const [filterHubspotId, setFilterHubspotId] = useState('')
+  const [filterHubspotId, setFilterHubspotIdState] = useState(() => {
+    const match = window.location.pathname.match(/^\/notes\/(.+)$/)
+    return match ? decodeURIComponent(match[1]) : ''
+  })
+
+  const setFilterHubspotId = useCallback((hubspotId) => {
+    setFilterHubspotIdState(hubspotId)
+    const path = hubspotId ? `/notes/${encodeURIComponent(String(hubspotId))}` : '/notes'
+    window.history.pushState({ page: 'notes' }, '', path)
+  }, [])
+
   const [notesViewMode, setNotesViewMode] = useState('by_attendee') // 'recent' | 'untagged' | 'by_attendee'
   const [recentViewDate, setRecentViewDate] = useState(() => getTodayDateString())
   const [notes, setNotes] = useState([])
@@ -600,6 +610,15 @@ function Notes({
     }
     return Array.from(map.values())
   }, [allPeople, modalAttendeeFallback])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const match = window.location.pathname.match(/^\/notes\/(.+)$/)
+      setFilterHubspotIdState(match ? decodeURIComponent(match[1]) : '')
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   useEffect(() => {
     let cancelled = false

@@ -12,7 +12,7 @@ import './App.css'
 const pageFromPath = (path) => {
   if (path === '/login') return 'login'
   if (path === '/meetgeek-manager') return 'meetgeek-manager'
-  if (path === '/notes') return 'notes'
+  if (path === '/notes' || path.startsWith('/notes/')) return 'notes'
   return 'home'
 }
 
