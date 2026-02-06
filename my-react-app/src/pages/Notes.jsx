@@ -198,7 +198,7 @@ function NoteCard({
 
 const MemoizedNoteCard = memo(NoteCard)
 
-function PersonSingleSelect({ people, selectedId, onChange, inputId, label, chipHighlight = false }) {
+function PersonSingleSelect({ people, selectedId, onChange, inputId, label }) {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const comboboxRef = useRef(null)
@@ -243,91 +243,86 @@ function PersonSingleSelect({ people, selectedId, onChange, inputId, label, chip
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const displayValue = selectedPerson ? selectedPerson.name : query
+  const showClear = selectedPerson || query
+
   return (
     <div className="form-group notes-people-group">
-      {!selectedPerson && (
-        <div className="notes-people-row">
-          <label className="notes-people-label" htmlFor={inputId}>
-            {label}
-          </label>
+      <div className="notes-people-row">
+        <label className="notes-people-label" htmlFor={inputId}>
+          {label}
+        </label>
 
-          <div className="notes-people-control">
-            <div ref={comboboxRef} className="combobox-container notes-combobox">
-              <div className="combobox-input-wrapper">
-                <input
-                  id={inputId}
-                  type="text"
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => {
+        <div className="notes-people-control">
+          <div ref={comboboxRef} className="combobox-container notes-combobox">
+            <div className="combobox-input-wrapper">
+              <input
+                id={inputId}
+                type="text"
+                ref={inputRef}
+                value={displayValue}
+                onChange={(e) => {
+                  if (selectedPerson) {
+                    clearSelection()
                     setQuery(e.target.value)
-                    setIsOpen(true)
+                  } else {
+                    setQuery(e.target.value)
+                  }
+                  setIsOpen(true)
+                }}
+                onFocus={() => setIsOpen(true)}
+                placeholder="Type to search people..."
+                autoComplete="off"
+                aria-label="Search and select one person"
+              />
+              {showClear && (
+                <button
+                  type="button"
+                  className="clear-button"
+                  onClick={() => {
+                    clearSelection()
+                    inputRef.current?.focus()
                   }}
-                  onFocus={() => setIsOpen(true)}
-                  placeholder="Type to search people..."
-                  autoComplete="off"
-                  aria-label="Search and select one person"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    className="clear-button"
-                    onClick={() => setQuery('')}
-                    aria-label="Clear search"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-
-              {isOpen && (
-                <ul className="combobox-dropdown notes-people-dropdown">
-                  {visiblePeople.length === 0 ? (
-                    <li className="no-results">No people found</li>
-                  ) : (
-                    visiblePeople.map((p) => {
-                      const isSelected = selectedId === p.hubspot_id
-                      return (
-                        <li
-                          key={p.hubspot_id}
-                          className={isSelected ? 'selected' : ''}
-                          onClick={() => selectPerson(p.hubspot_id)}
-                        >
-                          <div className="notes-person-option">
-                            <span className="notes-person-option-main">
-                              <span className="notes-person-option-name">{p.name}</span>
-                              {!!p.email && (
-                                <span className="notes-person-option-email">{p.email}</span>
-                              )}
-                            </span>
-                            <span className="notes-person-option-check" aria-hidden="true">
-                              {isSelected ? '✓' : ''}
-                            </span>
-                          </div>
-                        </li>
-                      )
-                    })
-                  )}
-                </ul>
+                  aria-label="Clear selection"
+                >
+                  ×
+                </button>
               )}
             </div>
+
+            {isOpen && (
+              <ul className="combobox-dropdown notes-people-dropdown">
+                {visiblePeople.length === 0 ? (
+                  <li className="no-results">No people found</li>
+                ) : (
+                  visiblePeople.map((p) => {
+                    const isSelected = selectedId === p.hubspot_id
+                    return (
+                      <li
+                        key={p.hubspot_id}
+                        className={isSelected ? 'selected' : ''}
+                        onClick={() => selectPerson(p.hubspot_id)}
+                      >
+                        <div className="notes-person-option">
+                          <span className="notes-person-option-main">
+                            <span className="notes-person-option-name">{p.name}</span>
+                            {!!p.email && (
+                              <span className="notes-person-option-email">{p.email}</span>
+                            )}
+                          </span>
+                          <span className="notes-person-option-check" aria-hidden="true">
+                            {isSelected ? '✓' : ''}
+                          </span>
+                        </div>
+                      </li>
+                    )
+                  })
+                )}
+              </ul>
+            )}
           </div>
         </div>
-      )}
-
-      {selectedPerson && (
-        <div className="notes-selected-people">
-          <button
-            type="button"
-            className={`notes-person-chip${chipHighlight ? ' notes-person-chip--highlight' : ''}`}
-            onClick={clearSelection}
-            title="Clear selection"
-          >
-            <span className="notes-person-chip-name">{selectedPerson.name}</span>
-            <span className="notes-person-chip-remove">×</span>
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -1210,7 +1205,6 @@ function Notes({
             onChange={setFilterHubspotId}
             inputId="notes-filter-person"
             label="Select a meeting attendee"
-            chipHighlight
           />
         )}
 
