@@ -720,14 +720,18 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,meeting_at,updated_at')
+              .select('id,note,meeting_at,updated_at,archived')
               .order('meeting_at', { ascending: false })
               .limit(200)
             if (!error) {
               const allRows = data ?? []
-              noteRows = noteIdsWithAttendees.size === 0
-                ? allRows
-                : allRows.filter((r) => !noteIdsWithAttendees.has(r.id))
+              const activeRows = (allRows ?? []).filter(
+                (r) => r?.archived === false || r?.archived == null
+              )
+              noteRows =
+                noteIdsWithAttendees.size === 0
+                  ? activeRows
+                  : activeRows.filter((r) => !noteIdsWithAttendees.has(r.id))
               lastNotesError = null
               break
             }
@@ -764,8 +768,9 @@ function Notes({
           for (const tableName of notesTableCandidates) {
             const { data, error } = await supabase
               .from(tableName)
-              .select('id,note,meeting_at,updated_at')
+              .select('id,note,meeting_at,updated_at,archived')
               .in('id', noteIds)
+              .eq('archived', false)
               .order('meeting_at', { ascending: false })
             if (!error) {
               noteRows = data ?? []
@@ -790,9 +795,10 @@ function Notes({
             for (const tableName of notesTableCandidates) {
               const { data, error } = await supabase
                 .from(tableName)
-                .select('id,note,meeting_at,updated_at')
+                .select('id,note,meeting_at,updated_at,archived')
                 .gte('meeting_at', dateStart)
                 .lt('meeting_at', dateEnd)
+                .eq('archived', false)
                 .order('meeting_at', { ascending: false })
               if (!error) {
                 noteRows = data ?? []
@@ -993,7 +999,7 @@ function Notes({
   const handleDeleteNote = async (noteRow) => {
     if (!noteRow?.id) return
 
-    const ok = window.confirm('Delete this note? This cannot be undone.')
+    const ok = window.confirm('Delete this note?')
     if (!ok) return
 
     setNotesError('')
@@ -1005,33 +1011,14 @@ function Notes({
 
     setDeletingNoteId(noteRow.id)
     try {
-      const attendeesTableCandidates = ['attendees', 'Attendees']
-      let lastAttendeesError = null
-
-      // Delete attendees first (in case there's no ON DELETE CASCADE)
-      for (const tableName of attendeesTableCandidates) {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('note_id', noteRow.id)
-        if (!error) {
-          lastAttendeesError = null
-          break
-        }
-        lastAttendeesError = error
-      }
-      // If attendees table doesn't exist, it's fine; note delete will still be attempted.
-      if (lastAttendeesError) {
-        console.error('Failed to delete attendees for note:', lastAttendeesError)
-      }
-
       const notesTableCandidates = ['notes', 'Notes']
       let lastNotesError = null
+      const updatedAt = new Date().toISOString()
 
       for (const tableName of notesTableCandidates) {
         const { error } = await supabase
           .from(tableName)
-          .delete()
+          .update({ archived: true, updated_at: updatedAt })
           .eq('id', noteRow.id)
         if (!error) {
           lastNotesError = null
