@@ -256,7 +256,7 @@ function NoteCard({
             onClick={handleInterrogateTranscript}
             disabled={interrogateLoading}
           >
-            {interrogateLoading ? 'Loading...' : 'Interrogate transcript with Gemini'}
+            {interrogateLoading ? 'Loading...' : 'Interrogate transcript with Gemini \u00BB'}
           </button>
         </div>
       )}

@@ -897,9 +897,11 @@
 }
 
 .notes-card-transcript-link {
-  padding: 0 1rem 0.25rem 1rem;
+  padding: 0.5rem 1rem;
   font-size: 0.8125rem;
   color: #57606a;
+  background-color: #e6f4ea;
+  text-align: center;
 }
 
 .notes-card-transcript-gemini-link {
