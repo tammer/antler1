@@ -506,6 +506,7 @@ function Notes({
   const [isLoadingModalAttendees, setIsLoadingModalAttendees] = useState(false)
   const [deletingNoteId, setDeletingNoteId] = useState(null)
   const meetingPeopleInputRef = useRef(null)
+  const notesTextareaRef = useRef(null)
   const openEditModalRef = useRef(null)
   const handleDeleteNoteRef = useRef(null)
 
@@ -877,12 +878,18 @@ function Notes({
     }
   }, [isModalOpen])
 
-  // When opening the modal for a new note, focus the "who is in the meeting" selector
+  // When opening the modal: followup (attendees pre-filled) → focus textarea; new note → focus attendee selector
   useEffect(() => {
     if (!isModalOpen || editingNoteId) return
-    const t = setTimeout(() => meetingPeopleInputRef.current?.focus(), 0)
+    const t = setTimeout(() => {
+      if (selectedHubspotIds.length > 0) {
+        notesTextareaRef.current?.focus()
+      } else {
+        meetingPeopleInputRef.current?.focus()
+      }
+    }, 0)
     return () => clearTimeout(t)
-  }, [isModalOpen, editingNoteId])
+  }, [isModalOpen, editingNoteId, selectedHubspotIds.length])
 
   const openNewModal = () => {
     setSaveError('')
@@ -1291,6 +1298,7 @@ function Notes({
               <div className="form-group">
                 <label htmlFor="notes-textarea">Note</label>
                 <textarea
+                  ref={notesTextareaRef}
                   id="notes-textarea"
                   value={noteText}
                   onChange={(e) => setNoteText(e.target.value)}
