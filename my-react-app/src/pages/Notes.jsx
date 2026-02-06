@@ -21,6 +21,20 @@ function formatNoteDateForInput(meetingAt) {
   return `${y}-${m}-${day}`
 }
 
+function formatNoteDateTimeWithTimezone(isoString) {
+  if (!isoString) return ''
+  const d = new Date(isoString)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  })
+}
+
 function getTodayDateString() {
   const d = new Date()
   const y = d.getFullYear()
@@ -191,6 +205,12 @@ function NoteCard({
       </div>
       <div className="notes-card-markdown">
         <MemoizedMarkdown content={note.note ?? ''} />
+      </div>
+      <div className="notes-card-footer">
+        <small className="notes-card-updated-at">
+          Last updated {' '}
+          {formatNoteDateTimeWithTimezone(note.updated_at)}
+        </small>
       </div>
     </div>
   )

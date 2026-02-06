@@ -886,6 +886,16 @@
   text-decoration: underline;
 }
 
+.notes-card-footer {
+  padding: 0 1rem 0.75rem 1rem;
+  text-align: right;
+}
+
+.notes-card-updated-at {
+  font-size: 0.75rem;
+  color: #57606a;
+}
+
 .notes-card hr {
   border: none;
   border-top: 0px solid red;
