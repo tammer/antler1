@@ -999,15 +999,31 @@ function Notes({
           .filter(Boolean)
       )
     )
+    const fallback = (attendeesList ?? [])
+      .map((a) => ({
+        hubspot_id: String(a?.hubspot_id ?? ''),
+        name: String(a?.name ?? '')
+      }))
+      .filter((p) => p.hubspot_id && p.name)
+
+    // If current user is not in the list, add them
+    const normalizedEmail = (userEmail ?? '').trim().toLowerCase()
+    const currentUser = normalizedEmail
+      ? (usersData ?? []).find((u) => (u?.email ?? '').toLowerCase() === normalizedEmail)
+      : null
+    if (currentUser?.hubspot_id) {
+      const hubspotId = String(currentUser.hubspot_id).trim()
+      if (!ids.includes(hubspotId)) {
+        ids.push(hubspotId)
+        fallback.push({
+          hubspot_id: hubspotId,
+          name: currentUser.name ?? currentUser.email ?? hubspotId
+        })
+      }
+    }
+
     setSelectedHubspotIds(ids)
-    setModalAttendeeFallback(
-      (attendeesList ?? [])
-        .map((a) => ({
-          hubspot_id: String(a?.hubspot_id ?? ''),
-          name: String(a?.name ?? '')
-        }))
-        .filter((p) => p.hubspot_id && p.name)
-    )
+    setModalAttendeeFallback(fallback)
     ensureAllPeopleLoaded()
     setIsModalOpen(true)
   }
