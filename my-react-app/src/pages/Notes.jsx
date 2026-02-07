@@ -3,6 +3,7 @@ import './MeetgeekManager.css'
 import { supabase } from '../lib/supabaseClient'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import usersData from '../data/users.json'
 
 function formatNoteDate(meetingAt) {
   if (!meetingAt) return ''
@@ -559,7 +560,8 @@ function Notes({
   allPeople = [],
   ensureAllPeopleLoaded = async () => {},
   isLoadingAllPeople = false,
-  allPeopleError = ''
+  allPeopleError = '',
+  userEmail = ''
 }) {
   const [people, setPeople] = useState([])
   const [isLoadingPeople, setIsLoadingPeople] = useState(false)
@@ -965,8 +967,23 @@ function Notes({
     setSaveError('')
     setEditingNoteId(null)
     setNoteText('')
-    setSelectedHubspotIds([])
-    setModalAttendeeFallback([])
+    const normalizedEmail = (userEmail ?? '').trim().toLowerCase()
+    const currentUser = normalizedEmail
+      ? (usersData ?? []).find((u) => (u?.email ?? '').toLowerCase() === normalizedEmail)
+      : null
+    if (currentUser?.hubspot_id) {
+      const hubspotId = String(currentUser.hubspot_id).trim()
+      setSelectedHubspotIds([hubspotId])
+      setModalAttendeeFallback([
+        {
+          hubspot_id: hubspotId,
+          name: currentUser.name ?? currentUser.email ?? hubspotId
+        }
+      ])
+    } else {
+      setSelectedHubspotIds([])
+      setModalAttendeeFallback([])
+    }
     ensureAllPeopleLoaded()
     setIsModalOpen(true)
   }

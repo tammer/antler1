@@ -89,6 +89,7 @@ function App() {
             ensureAllPeopleLoaded={ensureAllPeopleLoaded}
             isLoadingAllPeople={isLoadingAllPeople}
             allPeopleError={allPeopleError}
+            userEmail={user?.email ?? ''}
           />
         )}
       </div>
